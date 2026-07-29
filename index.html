@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>GradeHouse — Buy &amp; Sell Graded Collectibles</title>
+  <meta name="description" content="GradeHouse is your marketplace for graded cards, comics, coins, toys, sneakers, watches and more. Browse, buy, sell.">
+  <meta name="theme-color" content="#0D0F0E">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- Header -->
+<header class="gh-header">
+  <div class="gh-header-inner">
+    <a class="gh-logo" href="#" id="logoLink">
+      <span class="gh-logo-mark">🏛️</span>
+      <span class="gh-logo-text">Grade<span>House</span></span>
+    </a>
+    <nav class="gh-nav">
+      <a href="#" class="active">Marketplace</a>
+      <a href="#" data-soon>Sell</a>
+      <a href="#" data-soon>Vault</a>
+    </nav>
+    <button class="gh-signin" data-soon>Sign In</button>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="hero-title">The <span>House</span> of Graded Collectibles</h1>
+    <p class="hero-sub">Buy &amp; sell cards, comics, coins, toys, sneakers, watches &amp; more.</p>
+  </div>
+</section>
+
+<div class="page-body">
+
+  <!-- Shop by Category -->
+  <section class="cat-section">
+    <div class="cat-section-head">
+      <h2>Shop by Category</h2>
+      <a href="#" id="allListingsLink">All listings →</a>
+    </div>
+    <div id="catRow" class="cat-row"></div>
+  </section>
+
+  <!-- Sticky filter bar -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-bar-inner">
+
+      <div class="filter-tabs" id="typeTabs">
+        <button class="filter-tab active" data-type="">All</button>
+        <button class="filter-tab" data-type="direct">Direct</button>
+        <button class="filter-tab" data-type="vault">Vault</button>
+      </div>
+
+      <div class="filter-controls">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="search" id="searchInput" class="search-input" placeholder="Players, sets, items…">
+        </div>
+        <select id="conditionFilter" class="filter-select">
+          <option value="">Any Grade</option>
+          <option value="10">Gem Mint 10</option>
+          <option value="9">Mint 9</option>
+          <option value="8">NM-MT 8</option>
+          <option value="raw">Raw / Ungraded</option>
+        </select>
+        <select id="sortFilter" class="filter-select">
+          <option value="newest">Newest</option>
+          <option value="price_asc">Price ↑</option>
+          <option value="price_desc">Price ↓</option>
+          <option value="popular">Popular</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Listings -->
+  <main class="content">
+    <div class="meta-row">
+      <span id="resultCount" class="result-count"></span>
+    </div>
+    <div id="listingGrid" class="grid"></div>
+    <p id="emptyState" class="empty-state" hidden>No listings match — try clearing your filters.</p>
+  </main>
+
+</div>
+
+<!-- Listing detail modal -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true">
+    <button class="modal-close" id="modalClose" aria-label="Close">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<footer class="gh-footer">
+  <div class="gh-footer-inner">
+    <span class="gh-logo-text sm">Grade<span>House</span></span>
+    <p>Buy &amp; sell graded collectibles. Demo build — listings are samples.</p>
+    <p class="version">v1.0.0</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="script.js"></script>
+</body>
+</html>
