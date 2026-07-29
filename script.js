@@ -192,6 +192,52 @@ const state = { cat: "", type: "", grade: "", q: "", sort: "newest" };
 
 const $ = (id) => document.getElementById(id);
 
+// ── Cloud (Supabase) ────────────────────────────────────────
+const supa = window.supabase && window.SUPA_URL
+  ? window.supabase.createClient(window.SUPA_URL, window.SUPA_ANON)
+  : null;
+let currentUser = null;
+let dbListings = [];
+
+// Fallback art colors for user listings without a photo
+const CAT_COLORS = {
+  hockey: ["#0f2027", "#2c5364"], basketball: ["#42275a", "#734b6d"],
+  baseball: ["#134e5e", "#71b280"], football: ["#3a1c71", "#d76d77"],
+  golf: ["#076652", "#0c2f25"], soccer: ["#004170", "#da291c"],
+  pokemon: ["#f12711", "#f5af19"], anime: ["#f46b45", "#eea849"],
+  tcg: ["#41295a", "#8e44ad"], comics: ["#870000", "#190a05"],
+  coins: ["#b8860b", "#3a2c02"], toys: ["#0f0c29", "#302b63"],
+  sneakers: ["#ed213a", "#93291e"], watches: ["#093028", "#237a57"],
+};
+
+function mapDbRow(row) {
+  const mono = row.title.split(/\s+/).map((w) => w[0]).join("").slice(0, 3).toUpperCase();
+  return {
+    id: row.id, dbId: row.id, userId: row.user_id,
+    title: row.title, set: row.set_name || "—", cat: row.cat,
+    grade: row.grade, type: row.type, price: Number(row.price),
+    views: row.views || 0, ts: Date.parse(row.created_at),
+    img: row.img_url || null,
+    face: row.img_url ? null : { g: CAT_COLORS[row.cat] || ["#232526", "#414345"], mono },
+  };
+}
+
+async function loadDbListings() {
+  if (!supa) return;
+  const { data, error } = await supa
+    .from("listings")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (!error && data) {
+    dbListings = data.map(mapDbRow);
+    renderGrid();
+  }
+}
+
+function allListings() {
+  return [...dbListings, ...LISTINGS];
+}
+
 function money(n) {
   return "$" + n.toLocaleString("en-CA");
 }
@@ -248,7 +294,7 @@ function matchesGrade(l) {
 }
 
 function filtered() {
-  let items = LISTINGS.filter((l) => {
+  let items = allListings().filter((l) => {
     if (state.cat && l.cat !== state.cat) return false;
     if (state.type && l.type !== state.type) return false;
     if (!matchesGrade(l)) return false;
@@ -261,7 +307,7 @@ function filtered() {
   if (state.sort === "price_asc") items.sort((a, b) => a.price - b.price);
   else if (state.sort === "price_desc") items.sort((a, b) => b.price - a.price);
   else if (state.sort === "popular") items.sort((a, b) => b.views - a.views);
-  else items.sort((a, b) => b.id - a.id);
+  else items.sort((a, b) => (b.ts || b.id) - (a.ts || a.id));
   return items;
 }
 
@@ -286,9 +332,10 @@ function renderGrid() {
 }
 
 function openModal(id) {
-  const l = LISTINGS.find((x) => x.id === id);
+  const l = allListings().find((x) => String(x.id) === String(id));
   if (!l) return;
   const cat = CATEGORIES.find((c) => c.key === l.cat);
+  const mine = l.dbId && currentUser && l.userId === currentUser.id;
   $("modalBody").innerHTML = `
     ${cardArt(l, "modal-img")}
     <h3>${l.title}</h3>
@@ -300,7 +347,8 @@ function openModal(id) {
       <span class="modal-tag">${icon("eye", "icn-xs")}${viewsLabel(l.views)} views</span>
     </div>
     <div class="modal-price">${money(l.price)}</div>
-    <button class="btn-buy" data-soon>Buy Now</button>`;
+    <button class="btn-buy" data-soon>Buy Now</button>
+    ${mine ? `<button class="btn-ghost btn-danger" data-remove="${l.dbId}">Remove my listing</button>` : ""}`;
   $("modalOverlay").hidden = false;
   document.body.style.overflow = "hidden";
 }
@@ -353,7 +401,7 @@ function bindEvents() {
 
   $("listingGrid").addEventListener("click", (e) => {
     const card = e.target.closest(".listing-card");
-    if (card) openModal(Number(card.dataset.id));
+    if (card) openModal(card.dataset.id);
   });
 
   $("modalClose").addEventListener("click", closeModal);
@@ -361,7 +409,7 @@ function bindEvents() {
     if (e.target === $("modalOverlay")) closeModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") closeModal();
+    if (e.key === "Escape") { closeModal(); closeOverlay("authOverlay"); closeOverlay("sellOverlay"); }
   });
 
   $("allListingsLink").addEventListener("click", (e) => {
@@ -379,6 +427,158 @@ function bindEvents() {
       toast("Coming soon — live shows drop with v2");
     }
   });
+}
+
+// ── Auth + Sell ─────────────────────────────────────────────
+function openOverlay(id) {
+  $(id).hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeOverlay(id) {
+  const el = $(id);
+  if (el && !el.hidden) {
+    el.hidden = true;
+    document.body.style.overflow = "";
+  }
+}
+
+function updateAuthUI() {
+  $("authBtn").textContent = currentUser ? "Sign Out" : "Sign In";
+}
+
+let authMode = "signin";
+function setAuthMode(mode) {
+  authMode = mode;
+  $("authTitle").textContent = mode === "signin" ? "Sign in to GradeHouse" : "Create your account";
+  $("authSubmit").textContent = mode === "signin" ? "Sign In" : "Sign Up";
+  $("authToggle").textContent = mode === "signin" ? "New here? Create an account" : "Have an account? Sign in";
+}
+
+async function handleAuthSubmit(e) {
+  e.preventDefault();
+  const email = $("authEmail").value.trim();
+  const password = $("authPassword").value;
+  const err = $("authError");
+  err.hidden = true;
+  $("authSubmit").disabled = true;
+  try {
+    const { error } = authMode === "signin"
+      ? await supa.auth.signInWithPassword({ email, password })
+      : await supa.auth.signUp({ email, password });
+    if (error) throw error;
+    closeOverlay("authOverlay");
+    toast(authMode === "signin" ? "Welcome back" : "Account created — welcome to GradeHouse");
+  } catch (ex) {
+    err.textContent = ex.message || "Something went wrong";
+    err.hidden = false;
+  } finally {
+    $("authSubmit").disabled = false;
+  }
+}
+
+async function handleSellSubmit(e) {
+  e.preventDefault();
+  const err = $("sellError");
+  err.hidden = true;
+  $("sellSubmit").disabled = true;
+  $("sellSubmit").textContent = "Posting…";
+  try {
+    let imgUrl = null;
+    const file = $("sellPhoto").files[0];
+    if (file) {
+      const path = `${currentUser.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
+      const { error: upErr } = await supa.storage.from("card-photos").upload(path, file);
+      if (upErr) throw upErr;
+      imgUrl = supa.storage.from("card-photos").getPublicUrl(path).data.publicUrl;
+    }
+    const { error } = await supa.from("listings").insert({
+      user_id: currentUser.id,
+      title: $("sellTitle").value.trim(),
+      set_name: $("sellSet").value.trim(),
+      cat: $("sellCat").value,
+      grade: $("sellGrade").value,
+      type: $("sellType").value,
+      price: Number($("sellPrice").value),
+      img_url: imgUrl,
+    });
+    if (error) throw error;
+    $("sellForm").reset();
+    closeOverlay("sellOverlay");
+    toast("Listed — it's live on the marketplace");
+    await loadDbListings();
+  } catch (ex) {
+    err.textContent = ex.message || "Couldn't post the listing";
+    err.hidden = false;
+  } finally {
+    $("sellSubmit").disabled = false;
+    $("sellSubmit").textContent = "Post Listing";
+  }
+}
+
+function initCloud() {
+  if (!supa) {
+    const offline = () => toast("Cloud features need an internet connection");
+    $("authBtn").addEventListener("click", offline);
+    $("sellLink").addEventListener("click", (e) => { e.preventDefault(); offline(); });
+    return;
+  }
+  supa.auth.onAuthStateChange((_event, session) => {
+    currentUser = session ? session.user : null;
+    updateAuthUI();
+  });
+
+  $("authBtn").addEventListener("click", async () => {
+    if (currentUser) {
+      await supa.auth.signOut();
+      toast("Signed out");
+    } else {
+      setAuthMode("signin");
+      openOverlay("authOverlay");
+    }
+  });
+
+  $("sellLink").addEventListener("click", (e) => {
+    e.preventDefault();
+    if (!currentUser) {
+      setAuthMode("signup");
+      openOverlay("authOverlay");
+      toast("Sign in to start selling");
+    } else {
+      openOverlay("sellOverlay");
+    }
+  });
+
+  $("authForm").addEventListener("submit", handleAuthSubmit);
+  $("authToggle").addEventListener("click", () => setAuthMode(authMode === "signin" ? "signup" : "signin"));
+  $("sellForm").addEventListener("submit", handleSellSubmit);
+
+  $("sellCat").innerHTML = CATEGORIES.filter((c) => c.key)
+    .map((c) => `<option value="${c.key}">${c.label}</option>`).join("");
+
+  document.querySelectorAll("[data-close]").forEach((btn) =>
+    btn.addEventListener("click", () => closeOverlay(btn.dataset.close))
+  );
+  ["authOverlay", "sellOverlay"].forEach((id) =>
+    $(id).addEventListener("click", (e) => { if (e.target === $(id)) closeOverlay(id); })
+  );
+
+  $("modalBody").parentElement.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-remove]");
+    if (!btn) return;
+    btn.disabled = true;
+    const { error } = await supa.from("listings").delete().eq("id", btn.dataset.remove);
+    if (!error) {
+      closeModal();
+      toast("Listing removed");
+      await loadDbListings();
+    } else {
+      btn.disabled = false;
+      toast("Couldn't remove listing");
+    }
+  });
+
+  loadDbListings();
 }
 
 function initIntro() {
@@ -401,6 +601,7 @@ function init() {
   renderCategories();
   renderGrid();
   bindEvents();
+  initCloud();
 }
 
 init();

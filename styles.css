@@ -298,6 +298,36 @@ a { color: inherit; }
 }
 .btn-buy:hover { background: var(--brand-dim); }
 
+/* ── Forms (auth + sell) ────────────────────────────────────── */
+.modal-sm { max-width: 360px; }
+.gh-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.gh-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.gh-label {
+  display: flex; flex-direction: column; gap: 5px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.05em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.gh-input {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  border-radius: 8px; padding: 9px 11px; font-size: 14px; font-family: inherit;
+  outline: none; width: 100%;
+}
+.gh-input:focus { border-color: var(--brand); }
+.gh-file { padding: 7px; font-size: 12px; }
+.gh-file::file-selector-button {
+  background: var(--brand-tint); color: var(--brand); border: 1px solid var(--brand);
+  border-radius: 6px; padding: 4px 10px; font-size: 12px; font-weight: 700;
+  margin-right: 10px; cursor: pointer; font-family: inherit;
+}
+.form-error { color: #f87171; font-size: 12.5px; }
+.btn-ghost {
+  background: none; border: none; color: var(--text-muted);
+  font-size: 12.5px; padding: 6px; text-align: center; width: 100%;
+}
+.btn-ghost:hover { color: var(--brand); }
+.btn-danger { color: #f87171; margin-top: 8px; }
+.btn-danger:hover { color: #ef4444; }
+
 /* ── Footer / toast ─────────────────────────────────────────── */
 .gh-footer { border-top: 1px solid var(--border); margin-top: 60px; background: var(--surface); }
 .gh-footer-inner { max-width: 1200px; margin: 0 auto; padding: 28px 16px; text-align: center; }
