@@ -58,133 +58,153 @@ const STREAMS = [
 ];
 
 // Listings. img = real card image; face = designed placeholder.
+// Graded (non-raw) items render inside a GradeHouse slab frame.
 const LISTINGS = [
-  // ── Pokémon (real images — Pokémon TCG API) ──
-  { id: 1,  title: "Charizard Holo", set: "1999 Base Set #4", cat: "pokemon", grade: "9", type: "vault", price: 3200, views: 2150,
-    img: "https://images.pokemontcg.io/base1/4_hires.png" },
-  { id: 2,  title: "Pikachu", set: "1999 Base Set #58", cat: "pokemon", grade: "10", type: "direct", price: 380, views: 890,
-    img: "https://images.pokemontcg.io/base1/58_hires.png" },
-  { id: 3,  title: "Blastoise Holo", set: "1999 Base Set #2", cat: "pokemon", grade: "8", type: "vault", price: 1400, views: 760,
+  { id: 1, title: "Alakazam Holo", set: "1999 Base Set #1", cat: "pokemon", grade: "8", type: "direct", price: 300, views: 340,
+    img: "https://images.pokemontcg.io/base1/1_hires.png" },
+  { id: 2, title: "Blastoise Holo", set: "1999 Base Set #2", cat: "pokemon", grade: "8", type: "vault", price: 1400, views: 1900,
     img: "https://images.pokemontcg.io/base1/2_hires.png" },
-  { id: 4,  title: "Pikachu Black Star Promo", set: "1999 Wizards Promo #1", cat: "pokemon", grade: "9", type: "direct", price: 95, views: 310,
+  { id: 3, title: "Chansey Holo", set: "1999 Base Set #3", cat: "pokemon", grade: "7", type: "direct", price: 350, views: 410,
+    img: "https://images.pokemontcg.io/base1/3_hires.png" },
+  { id: 4, title: "Charizard Holo", set: "1999 Base Set #4", cat: "pokemon", grade: "9", type: "vault", price: 3200, views: 4800,
+    img: "https://images.pokemontcg.io/base1/4_hires.png" },
+  { id: 5, title: "Clefairy Holo", set: "1999 Base Set #5", cat: "pokemon", grade: "8", type: "direct", price: 180, views: 220,
+    img: "https://images.pokemontcg.io/base1/5_hires.png" },
+  { id: 6, title: "Gyarados Holo", set: "1999 Base Set #6", cat: "pokemon", grade: "9", type: "direct", price: 320, views: 640,
+    img: "https://images.pokemontcg.io/base1/6_hires.png" },
+  { id: 7, title: "Hitmonchan Holo", set: "1999 Base Set #7", cat: "pokemon", grade: "8", type: "direct", price: 200, views: 250,
+    img: "https://images.pokemontcg.io/base1/7_hires.png" },
+  { id: 8, title: "Machamp Holo", set: "1999 Base Set #8", cat: "pokemon", grade: "9", type: "direct", price: 120, views: 300,
+    img: "https://images.pokemontcg.io/base1/8_hires.png" },
+  { id: 9, title: "Magneton Holo", set: "1999 Base Set #9", cat: "pokemon", grade: "7", type: "direct", price: 90, views: 120,
+    img: "https://images.pokemontcg.io/base1/9_hires.png" },
+  { id: 10, title: "Mewtwo Holo", set: "1999 Base Set #10", cat: "pokemon", grade: "9", type: "direct", price: 450, views: 980,
+    img: "https://images.pokemontcg.io/base1/10_hires.png" },
+  { id: 11, title: "Nidoking Holo", set: "1999 Base Set #11", cat: "pokemon", grade: "8", type: "direct", price: 160, views: 210,
+    img: "https://images.pokemontcg.io/base1/11_hires.png" },
+  { id: 12, title: "Ninetales Holo", set: "1999 Base Set #12", cat: "pokemon", grade: "8", type: "direct", price: 290, views: 330,
+    img: "https://images.pokemontcg.io/base1/12_hires.png" },
+  { id: 13, title: "Poliwrath Holo", set: "1999 Base Set #13", cat: "pokemon", grade: "8", type: "direct", price: 140, views: 160,
+    img: "https://images.pokemontcg.io/base1/13_hires.png" },
+  { id: 14, title: "Raichu Holo", set: "1999 Base Set #14", cat: "pokemon", grade: "8", type: "direct", price: 360, views: 520,
+    img: "https://images.pokemontcg.io/base1/14_hires.png" },
+  { id: 15, title: "Venusaur Holo", set: "1999 Base Set #15", cat: "pokemon", grade: "8", type: "vault", price: 1100, views: 1500,
+    img: "https://images.pokemontcg.io/base1/15_hires.png" },
+  { id: 16, title: "Zapdos Holo", set: "1999 Base Set #16", cat: "pokemon", grade: "8", type: "direct", price: 380, views: 450,
+    img: "https://images.pokemontcg.io/base1/16_hires.png" },
+  { id: 17, title: "Pikachu", set: "1999 Base Set #58", cat: "pokemon", grade: "10", type: "direct", price: 380, views: 890,
+    img: "https://images.pokemontcg.io/base1/58_hires.png" },
+  { id: 18, title: "Pikachu Black Star Promo", set: "1999 Wizards Promo #1", cat: "pokemon", grade: "9", type: "direct", price: 95, views: 310,
     img: "https://images.pokemontcg.io/basep/1_hires.png" },
-  { id: 5,  title: "Lugia Holo", set: "2000 Neo Genesis #9", cat: "pokemon", grade: "8", type: "vault", price: 2800, views: 1120,
+  { id: 19, title: "Lugia Holo", set: "2000 Neo Genesis #9", cat: "pokemon", grade: "8", type: "vault", price: 2800, views: 1120,
     img: "https://images.pokemontcg.io/neo1/9_hires.png" },
-  { id: 6,  title: "Umbreon VMAX Alt Art", set: "2021 Evolving Skies #215", cat: "pokemon", grade: "10", type: "vault", price: 1250, views: 3400,
+  { id: 20, title: "Umbreon VMAX Alt Art", set: "2021 Evolving Skies #215", cat: "pokemon", grade: "10", type: "vault", price: 1250, views: 3400,
     img: "https://images.pokemontcg.io/swsh7/215_hires.png" },
-  { id: 7,  title: "Charizard ex", set: "2023 Pokémon 151 #6", cat: "pokemon", grade: "10", type: "direct", price: 145, views: 980,
+  { id: 21, title: "Rayquaza VMAX Alt Art", set: "2021 Evolving Skies #218", cat: "pokemon", grade: "10", type: "vault", price: 950, views: 2900,
+    img: "https://images.pokemontcg.io/swsh7/218_hires.png" },
+  { id: 22, title: "Charizard ex", set: "2023 Pokémon 151 #6", cat: "pokemon", grade: "10", type: "direct", price: 145, views: 980,
     img: "https://images.pokemontcg.io/sv3pt5/6_hires.png" },
-
-  // ── One Piece (real images — official card list) ──
-  { id: 8,  title: "Monkey D. Luffy Leader", set: "OP-01 Romance Dawn", cat: "anime", grade: "10", type: "direct", price: 220, views: 1500,
+  { id: 23, title: "Pikachu", set: "2023 Pokémon 151 #25", cat: "pokemon", grade: "9", type: "direct", price: 60, views: 540,
+    img: "https://images.pokemontcg.io/sv3pt5/25_hires.png" },
+  { id: 24, title: "Monkey D. Luffy Leader", set: "OP-01 Romance Dawn", cat: "anime", grade: "10", type: "direct", price: 220, views: 1500,
     img: "https://en.onepiece-cardgame.com/images/cardlist/card/OP01-001.png" },
-  { id: 9,  title: "Roronoa Zoro", set: "OP-01 Romance Dawn #025", cat: "anime", grade: "9", type: "direct", price: 85, views: 620,
+  { id: 25, title: "Roronoa Zoro", set: "OP-01 Romance Dawn #025", cat: "anime", grade: "9", type: "direct", price: 85, views: 620,
     img: "https://en.onepiece-cardgame.com/images/cardlist/card/OP01-025.png" },
-  { id: 10, title: "Edward Newgate Leader", set: "OP-02 Paramount War", cat: "anime", grade: "10", type: "vault", price: 340, views: 780,
+  { id: 26, title: "Edward Newgate Leader", set: "OP-02 Paramount War", cat: "anime", grade: "10", type: "vault", price: 340, views: 780,
     img: "https://en.onepiece-cardgame.com/images/cardlist/card/OP02-001.png" },
-
-  // ── Dragon Ball (designed faces) ──
-  { id: 11, title: "Son Goku SCR", set: "Fusion World FB01", cat: "anime", grade: "10", type: "direct", price: 410, views: 1900,
+  { id: 27, title: "Son Goku SCR", set: "Fusion World FB01", cat: "anime", grade: "10", type: "direct", price: 410, views: 1900,
     face: { g: ["#f46b45", "#eea849"], mono: "GOKU" } },
-  { id: 12, title: "Vegeta Alt Art", set: "Fusion World FB02", cat: "anime", grade: "9", type: "direct", price: 160, views: 720,
+  { id: 28, title: "Vegeta Alt Art", set: "Fusion World FB02", cat: "anime", grade: "9", type: "direct", price: 160, views: 720,
     face: { g: ["#1a2980", "#26d0ce"], mono: "VGT" } },
-
-  // ── Magic (real image — Scryfall) ──
-  { id: 13, title: "Black Lotus", set: "1993 Limited Edition Alpha", cat: "tcg", grade: "7", type: "vault", price: 48000, views: 8900,
+  { id: 29, title: "Black Lotus", set: "1993 Limited Edition Alpha", cat: "tcg", grade: "7", type: "vault", price: 48000, views: 8900,
     img: "https://cards.scryfall.io/large/front/b/d/bd8fa327-dd41-4737-8f19-2cf5eb1f7cdd.jpg" },
-  { id: 14, title: "Blue-Eyes White Dragon", set: "2002 LOB 1st Edition", cat: "tcg", grade: "8", type: "vault", price: 2600, views: 1400,
+  { id: 30, title: "Blue-Eyes White Dragon", set: "2002 LOB 1st Edition", cat: "tcg", grade: "8", type: "vault", price: 2600, views: 1400,
     face: { g: ["#e0eafc", "#7f9cf5"], mono: "BEWD", dark: true } },
-  { id: 15, title: "Dark Magician", set: "2002 LOB 1st Edition", cat: "tcg", grade: "9", type: "direct", price: 950, views: 800,
+  { id: 31, title: "Dark Magician", set: "2002 LOB 1st Edition", cat: "tcg", grade: "9", type: "direct", price: 950, views: 800,
     face: { g: ["#41295a", "#8e44ad"], mono: "DM" } },
-
-  // ── Vintage baseball (real images — Wikimedia Commons) ──
-  { id: 16, title: "Honus Wagner T206", set: "1909-11 American Tobacco", cat: "baseball", grade: "2", type: "vault", price: 95000, views: 12400,
+  { id: 32, title: "Honus Wagner T206", set: "1909-11 American Tobacco", cat: "baseball", grade: "2", type: "vault", price: 95000, views: 12400,
     img: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Honus_wagner_t206_baseball_card.jpg" },
-  { id: 17, title: "Babe Ruth Rookie", set: "1916 M101-4 Sporting News", cat: "baseball", grade: "3", type: "vault", price: 28500, views: 5600,
+  { id: 33, title: "Babe Ruth Rookie", set: "1916 M101-4 Sporting News", cat: "baseball", grade: "3", type: "vault", price: 28500, views: 5600,
     img: "https://upload.wikimedia.org/wikipedia/commons/f/f1/1916_M101-4_Sporting_News_Babe_Ruth_Rookie_-151.jpg" },
-  { id: 18, title: "Ty Cobb T206", set: "1909-11 American Tobacco", cat: "baseball", grade: "4", type: "vault", price: 6800, views: 2100,
+  { id: 34, title: "Ty Cobb T206 Portrait", set: "1909-11 American Tobacco", cat: "baseball", grade: "4", type: "vault", price: 6800, views: 2100,
     img: "https://upload.wikimedia.org/wikipedia/commons/6/61/1909-1911_T206_Ty_Cobb_Front.webp" },
-  { id: 19, title: "Cy Young", set: "1911 Tobacco Portrait", cat: "baseball", grade: "3", type: "vault", price: 2400, views: 940,
+  { id: 35, title: "Ty Cobb T206 Bat Off Shoulder", set: "1909-11 American Tobacco", cat: "baseball", grade: "3", type: "vault", price: 5200, views: 1700,
+    img: "https://upload.wikimedia.org/wikipedia/commons/9/99/1909-11_T206_Ty_Cobb_bat-off-shoulder.jpg" },
+  { id: 36, title: "Walter Johnson T206", set: "1909-11 American Tobacco", cat: "baseball", grade: "4", type: "vault", price: 3800, views: 1300,
+    img: "https://upload.wikimedia.org/wikipedia/commons/e/e9/T206Johnson.jpg" },
+  { id: 37, title: "Christy Mathewson", set: "1910 Tobacco Portrait", cat: "baseball", grade: "3", type: "vault", price: 2100, views: 880,
+    img: "https://upload.wikimedia.org/wikipedia/commons/6/62/Christy_Mathewson%2C_New_York_Giants%2C_baseball_card_portrait_LCCN2007685630.jpg" },
+  { id: 38, title: "Cy Young", set: "1911 Tobacco Portrait", cat: "baseball", grade: "3", type: "vault", price: 2400, views: 940,
     img: "https://upload.wikimedia.org/wikipedia/commons/5/51/Cy_young_Card.jpg" },
-  { id: 20, title: "Shohei Ohtani RC", set: "2018 Topps Chrome", cat: "baseball", grade: "10", type: "direct", price: 780, views: 1300,
+  { id: 39, title: "Shohei Ohtani RC", set: "2018 Topps Chrome", cat: "baseball", grade: "10", type: "direct", price: 780, views: 1300,
     face: { g: ["#134e5e", "#71b280"], mono: "17" } },
-
-  // ── Hockey (designed faces) ──
-  { id: 21, title: "Connor Bedard RC", set: "2023 UD Young Guns", cat: "hockey", grade: "10", type: "vault", price: 899, views: 2900,
+  { id: 40, title: "Bert Lindsay", set: "1911-12 C55 Imperial Tobacco", cat: "hockey", grade: "3", type: "vault", price: 1400, views: 760,
+    img: "https://upload.wikimedia.org/wikipedia/commons/e/e2/Bert_Lindsay_1911.jpg" },
+  { id: 41, title: "Harry Hyland", set: "1911-12 C55 Imperial Tobacco", cat: "hockey", grade: "3", type: "vault", price: 1100, views: 620,
+    img: "https://upload.wikimedia.org/wikipedia/commons/2/2d/Harry_Hyland_1911.jpg" },
+  { id: 42, title: "Connor Bedard RC", set: "2023 UD Young Guns", cat: "hockey", grade: "10", type: "vault", price: 899, views: 2900,
     face: { g: ["#cf0a2c", "#1a1a1a"], mono: "98" } },
-  { id: 22, title: "Wayne Gretzky RC", set: "1979 O-Pee-Chee #18", cat: "hockey", grade: "8", type: "vault", price: 12500, views: 4100,
+  { id: 43, title: "Wayne Gretzky RC", set: "1979 O-Pee-Chee #18", cat: "hockey", grade: "8", type: "vault", price: 12500, views: 4100,
     face: { g: ["#041e42", "#ff4c00"], mono: "99" } },
-  { id: 23, title: "Sidney Crosby RC", set: "2005 UD Young Guns", cat: "hockey", grade: "9", type: "direct", price: 3900, views: 1700,
+  { id: 44, title: "Sidney Crosby RC", set: "2005 UD Young Guns", cat: "hockey", grade: "9", type: "direct", price: 3900, views: 1700,
     face: { g: ["#fcb514", "#101010"], mono: "87" } },
-  { id: 24, title: "Connor McDavid RC", set: "2015 UD Young Guns", cat: "hockey", grade: "10", type: "vault", price: 5200, views: 2300,
+  { id: 45, title: "Connor McDavid RC", set: "2015 UD Young Guns", cat: "hockey", grade: "10", type: "vault", price: 5200, views: 2300,
     face: { g: ["#00205b", "#cf4520"], mono: "97" } },
-  { id: 25, title: "Alex Ovechkin RC", set: "2005 UD Young Guns", cat: "hockey", grade: "9", type: "direct", price: 2100, views: 990,
+  { id: 46, title: "Alex Ovechkin RC", set: "2005 UD Young Guns", cat: "hockey", grade: "9", type: "direct", price: 2100, views: 990,
     face: { g: ["#c8102e", "#041e42"], mono: "8" } },
-
-  // ── Basketball ──
-  { id: 26, title: "Michael Jordan", set: "1996 Topps Chrome", cat: "basketball", grade: "9", type: "vault", price: 2100, views: 3100,
+  { id: 47, title: "Michael Jordan", set: "1996 Topps Chrome", cat: "basketball", grade: "9", type: "vault", price: 2100, views: 3100,
     face: { g: ["#ce1141", "#000000"], mono: "23" } },
-  { id: 27, title: "Victor Wembanyama RC", set: "2023 Prizm Silver", cat: "basketball", grade: "10", type: "direct", price: 1450, views: 2600,
+  { id: 48, title: "Victor Wembanyama RC", set: "2023 Prizm Silver", cat: "basketball", grade: "10", type: "direct", price: 1450, views: 2600,
     face: { g: ["#8a8d8f", "#0c0c0c"], mono: "1" } },
-  { id: 28, title: "LeBron James RC", set: "2003 Topps #221", cat: "basketball", grade: "9", type: "vault", price: 4400, views: 3800,
+  { id: 49, title: "LeBron James RC", set: "2003 Topps #221", cat: "basketball", grade: "9", type: "vault", price: 4400, views: 3800,
     face: { g: ["#552583", "#fdb927"], mono: "23" } },
-  { id: 29, title: "Stephen Curry RC", set: "2009 Topps #321", cat: "basketball", grade: "9", type: "direct", price: 1900, views: 1500,
+  { id: 50, title: "Stephen Curry RC", set: "2009 Topps #321", cat: "basketball", grade: "9", type: "direct", price: 1900, views: 1500,
     face: { g: ["#1d428a", "#ffc72c"], mono: "30" } },
-
-  // ── Football ──
-  { id: 30, title: "Tom Brady RC", set: "2000 Bowman Chrome", cat: "football", grade: "9", type: "vault", price: 8900, views: 4600,
+  { id: 51, title: "Tom Brady RC", set: "2000 Bowman Chrome", cat: "football", grade: "9", type: "vault", price: 8900, views: 4600,
     face: { g: ["#002244", "#c60c30"], mono: "12" } },
-  { id: 31, title: "Patrick Mahomes RC", set: "2017 Prizm #269", cat: "football", grade: "10", type: "vault", price: 3300, views: 2900,
+  { id: 52, title: "Patrick Mahomes RC", set: "2017 Prizm #269", cat: "football", grade: "10", type: "vault", price: 3300, views: 2900,
     face: { g: ["#e31837", "#ffb81c"], mono: "15" } },
-  { id: 32, title: "C.J. Stroud RC", set: "2023 Prizm", cat: "football", grade: "10", type: "direct", price: 240, views: 640,
+  { id: 53, title: "C.J. Stroud RC", set: "2023 Prizm", cat: "football", grade: "10", type: "direct", price: 240, views: 640,
     face: { g: ["#03202f", "#a71930"], mono: "7" } },
-
-  // ── Golf ──
-  { id: 33, title: "Tiger Woods RC", set: "2001 Upper Deck #1", cat: "golf", grade: "10", type: "vault", price: 4800, views: 3300,
+  { id: 54, title: "Tiger Woods RC", set: "2001 Upper Deck #1", cat: "golf", grade: "10", type: "vault", price: 4800, views: 3300,
     face: { g: ["#b30000", "#1a1a1a"], mono: "TW" } },
-  { id: 34, title: "Scottie Scheffler", set: "2021 UD Artifacts", cat: "golf", grade: "10", type: "direct", price: 320, views: 540,
+  { id: 55, title: "Scottie Scheffler", set: "2021 UD Artifacts", cat: "golf", grade: "10", type: "direct", price: 320, views: 540,
     face: { g: ["#076652", "#0c2f25"], mono: "SS" } },
-  { id: 35, title: "Rory McIlroy", set: "2014 UD Masterpieces", cat: "golf", grade: "9", type: "direct", price: 180, views: 390,
+  { id: 56, title: "Rory McIlroy", set: "2014 UD Masterpieces", cat: "golf", grade: "9", type: "direct", price: 180, views: 390,
     face: { g: ["#1e5631", "#a4de02"], mono: "RM", dark: true } },
-  { id: 36, title: "Jack Nicklaus", set: "2012 SP Authentic", cat: "golf", grade: "8", type: "vault", price: 650, views: 470,
+  { id: 57, title: "Jack Nicklaus", set: "2012 SP Authentic", cat: "golf", grade: "8", type: "vault", price: 650, views: 470,
     face: { g: ["#b8860b", "#3a2c02"], mono: "JN" } },
-
-  // ── Soccer ──
-  { id: 37, title: "Lionel Messi RC", set: "2004 Panini Mega Cracks", cat: "soccer", grade: "9", type: "vault", price: 16500, views: 5200,
+  { id: 58, title: "Lionel Messi RC", set: "2004 Panini Mega Cracks", cat: "soccer", grade: "9", type: "vault", price: 16500, views: 5200,
     face: { g: ["#6cace4", "#f5f7fa"], mono: "10", dark: true } },
-  { id: 38, title: "Cristiano Ronaldo RC", set: "2003 Panini Sports Mega", cat: "soccer", grade: "8", type: "vault", price: 9800, views: 4100,
+  { id: 59, title: "Cristiano Ronaldo RC", set: "2003 Panini Sports Mega", cat: "soccer", grade: "8", type: "vault", price: 9800, views: 4100,
     face: { g: ["#046a38", "#da291c"], mono: "7" } },
-  { id: 39, title: "Kylian Mbappé", set: "2018 Panini Prizm WC", cat: "soccer", grade: "10", type: "direct", price: 720, views: 1100,
+  { id: 60, title: "Kylian Mbappé", set: "2018 Panini Prizm WC", cat: "soccer", grade: "10", type: "direct", price: 720, views: 1100,
     face: { g: ["#004170", "#da291c"], mono: "10" } },
-
-  // ── Comics ──
-  { id: 40, title: "The Incredible Hulk #181", set: "Marvel 1974 — 1st Wolverine", cat: "comics", grade: "8", type: "vault", price: 4800, views: 1800,
+  { id: 61, title: "Planet Comics #11", set: "Fiction House 1941", cat: "comics", grade: "6", type: "vault", price: 850, views: 720,
+    img: "https://upload.wikimedia.org/wikipedia/commons/e/e8/Planet_Comics_11.jpg" },
+  { id: 62, title: "Planet Comics #53", set: "Fiction House 1948", cat: "comics", grade: "7", type: "direct", price: 420, views: 380,
+    img: "https://upload.wikimedia.org/wikipedia/commons/0/0e/Planet_Comics_53.jpg" },
+  { id: 63, title: "The Incredible Hulk #181", set: "Marvel 1974 — 1st Wolverine", cat: "comics", grade: "8", type: "vault", price: 4800, views: 1800,
     face: { g: ["#11998e", "#38ef7d"], mono: "181" } },
-  { id: 41, title: "Amazing Fantasy #15 Facsimile", set: "Marvel 2022 Reprint", cat: "comics", grade: "10", type: "direct", price: 95, views: 330,
+  { id: 64, title: "Amazing Fantasy #15 Facsimile", set: "Marvel 2022 Reprint", cat: "comics", grade: "10", type: "direct", price: 95, views: 330,
     face: { g: ["#870000", "#190a05"], mono: "AF15" } },
-
-  // ── Coins ──
-  { id: 42, title: "1oz Gold Maple Leaf", set: "Royal Canadian Mint 2024", cat: "coins", grade: "raw", type: "direct", price: 3350, views: 260,
-    face: { g: ["#b8860b", "#3a2c02"], mono: "1oz" } },
-  { id: 43, title: "Morgan Silver Dollar 1885", set: "US Mint — MS graded", cat: "coins", grade: "9", type: "vault", price: 410, views: 350,
-    face: { g: ["#606c88", "#3f4c6b"], mono: "1885" } },
-
-  // ── Toys ──
-  { id: 44, title: "LEGO UCS Millennium Falcon", set: "75192 — Sealed", cat: "toys", grade: "raw", type: "direct", price: 1100, views: 690,
-    face: { g: ["#0f0c29", "#302b63"], mono: "75192" } },
-  { id: 45, title: "1st Gen Optimus Prime", set: "1984 Hasbro AFA 80", cat: "toys", grade: "8", type: "vault", price: 2600, views: 610,
+  { id: 65, title: "1oz Silver Maple Leaf", set: ".9999 Royal Canadian Mint", cat: "coins", grade: "raw", type: "direct", price: 45, views: 180,
+    img: "https://upload.wikimedia.org/wikipedia/commons/c/c8/1-ounce_Silver_Canadian_Maple_Leaf_MADE_OF_.9999%25_PURE_SILVER.jpg" },
+  { id: 66, title: "Morgan Silver Dollar 1885-O", set: "US Mint — MS graded", cat: "coins", grade: "9", type: "vault", price: 410, views: 350,
+    img: "https://upload.wikimedia.org/wikipedia/commons/7/74/1_Dollar_Morgan_-_1885_O.png" },
+  { id: 67, title: "LEGO Millennium Falcon", set: "UCS Display Build", cat: "toys", grade: "raw", type: "direct", price: 1100, views: 690,
+    img: "https://upload.wikimedia.org/wikipedia/commons/7/78/Millennium_Falcon_in_LEGO.jpg" },
+  { id: 68, title: "1st Gen Optimus Prime", set: "1984 Hasbro AFA 80", cat: "toys", grade: "8", type: "vault", price: 2600, views: 610,
     face: { g: ["#c31432", "#240b36"], mono: "OP" } },
-
-  // ── Sneakers ──
-  { id: 46, title: "Jordan 1 Chicago '85", set: "OG Pair — Size 10", cat: "sneakers", grade: "raw", type: "vault", price: 18500, views: 4400,
+  { id: 69, title: "Air Jordan 1 Retro High", set: "Bred colorway — Size 10", cat: "sneakers", grade: "raw", type: "direct", price: 240, views: 980,
+    img: "https://upload.wikimedia.org/wikipedia/commons/6/62/2023_Buty_Nike_Air_Jordan.jpg" },
+  { id: 70, title: "Nike Mag Back to the Future", set: "2016 Auto-lace", cat: "sneakers", grade: "raw", type: "vault", price: 32000, views: 5100,
+    img: "https://upload.wikimedia.org/wikipedia/commons/0/07/Nike_Mag.jpeg" },
+  { id: 71, title: "Jordan 1 Chicago '85", set: "OG Pair — Size 10", cat: "sneakers", grade: "raw", type: "vault", price: 18500, views: 4400,
     face: { g: ["#ed213a", "#93291e"], mono: "'85" } },
-  { id: 47, title: "Nike Mag Back to the Future", set: "2016 Auto-lace", cat: "sneakers", grade: "raw", type: "vault", price: 32000, views: 5100,
-    face: { g: ["#41295a", "#2f0743"], mono: "MAG" } },
-
-  // ── Watches ──
-  { id: 48, title: "Rolex Submariner Hulk", set: "116610LV — Full set", cat: "watches", grade: "raw", type: "vault", price: 21500, views: 2700,
-    face: { g: ["#093028", "#237a57"], mono: "ROLEX" } },
-  { id: 49, title: "Omega Speedmaster Moonwatch", set: "Hesalite — box + papers", cat: "watches", grade: "raw", type: "direct", price: 6800, views: 1200,
+  { id: 72, title: "Rolex Datejust", set: "Ref 16013 — Full set", cat: "watches", grade: "raw", type: "vault", price: 8900, views: 2700,
+    img: "https://upload.wikimedia.org/wikipedia/commons/9/9d/Rolex_Datejust_16013.jpg" },
+  { id: 73, title: "Omega Speedmaster Moonwatch", set: "Hesalite — box + papers", cat: "watches", grade: "raw", type: "direct", price: 6800, views: 1200,
     face: { g: ["#141e30", "#243b55"], mono: "Ω" } },
 ];
 
@@ -250,16 +270,31 @@ function viewsLabel(n) {
   return n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(n);
 }
 
-function cardArt(l, cls) {
-  if (l.img) {
-    return `<div class="${cls} has-img"><img src="${l.img}" alt="${l.title}" loading="lazy"></div>`;
-  }
+function faceArt(l, cls) {
   const f = l.face;
   return `<div class="${cls} card-face ${f.dark ? "face-dark" : ""}" style="background:linear-gradient(160deg,${f.g[0]},${f.g[1]})">
     ${icon(iconKey(l.cat), "face-icn")}
     <span class="face-mono">${f.mono}</span>
     <span class="face-name">${l.title}</span>
   </div>`;
+}
+
+function cardArt(l, cls) {
+  const inner = l.img
+    ? `<img src="${l.img}" alt="${l.title}" loading="lazy">`
+    : faceArt(l, "slab-face");
+  if (l.grade !== "raw") {
+    // Graded → render inside a GradeHouse slab
+    return `<div class="${cls} slabbed">
+      <div class="slab-top">
+        <div class="slab-id"><span class="slab-brand">GRADEHOUSE</span><span class="slab-set">${l.set}</span></div>
+        <span class="slab-grade">${l.grade}</span>
+      </div>
+      <div class="slab-window">${inner}</div>
+    </div>`;
+  }
+  if (l.img) return `<div class="${cls} has-img">${inner}</div>`;
+  return faceArt(l, cls);
 }
 
 function renderLive() {
@@ -320,7 +355,7 @@ function renderGrid() {
       <div class="listing-art">
         ${cardArt(l, "listing-img")}
         <span class="listing-badge ${l.type}">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type}</span>
-        <span class="grade-chip ${l.grade === "raw" ? "raw" : ""}">${gradeLabel(l.grade)}</span>
+        ${l.grade === "raw" ? `<span class="grade-chip raw">RAW</span>` : ""}
       </div>
       <div class="listing-info">
         <span class="listing-title">${l.title}</span>
