@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>GradeHouse — Buy &amp; Sell Graded Collectibles</title>
-  <meta name="description" content="GradeHouse is your marketplace for graded cards, comics, coins, toys, sneakers, watches and more. Browse, buy, sell.">
+  <meta name="description" content="GradeHouse is your marketplace for graded cards, comics, coins, toys, sneakers, watches and more. Live breaks, auctions, buy &amp; sell.">
   <meta name="theme-color" content="#0D0F0E">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏛️</text></svg>">
-  <link rel="stylesheet" href="styles.css?v=1.0.1">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' x2='21' y1='22' y2='22'/%3E%3Cline x1='6' x2='6' y1='18' y2='11'/%3E%3Cline x1='10' x2='10' y1='18' y2='11'/%3E%3Cline x1='14' x2='14' y1='18' y2='11'/%3E%3Cline x1='18' x2='18' y1='18' y2='11'/%3E%3Cpolygon points='12 2 20 7 4 7'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css?v=1.1.0">
 </head>
 <body>
 
@@ -15,11 +15,12 @@
 <header class="gh-header">
   <div class="gh-header-inner">
     <a class="gh-logo" href="#" id="logoLink">
-      <span class="gh-logo-mark">🏛️</span>
+      <svg class="gh-logo-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" x2="21" y1="22" y2="22"/><line x1="6" x2="6" y1="18" y2="11"/><line x1="10" x2="10" y1="18" y2="11"/><line x1="14" x2="14" y1="18" y2="11"/><line x1="18" x2="18" y1="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>
       <span class="gh-logo-text">Grade<span>House</span></span>
     </a>
     <nav class="gh-nav">
       <a href="#" class="active">Marketplace</a>
+      <a href="#liveSection">Live</a>
       <a href="#" data-soon>Sell</a>
       <a href="#" data-soon>Vault</a>
     </nav>
@@ -31,15 +32,24 @@
 <section class="hero">
   <div class="hero-inner">
     <h1 class="hero-title">The <span>House</span> of Graded Collectibles</h1>
-    <p class="hero-sub">Buy &amp; sell cards, comics, coins, toys, sneakers, watches &amp; more.</p>
+    <p class="hero-sub">Live breaks &amp; auctions. Cards, comics, coins, toys, sneakers, watches &amp; more.</p>
   </div>
 </section>
 
 <div class="page-body">
 
+  <!-- Live Now -->
+  <section class="live-section" id="liveSection">
+    <div class="section-head">
+      <h2><span class="live-dot-title"></span>Live Now</h2>
+      <a href="#" data-soon>See all shows →</a>
+    </div>
+    <div id="liveRow" class="live-row"></div>
+  </section>
+
   <!-- Shop by Category -->
   <section class="cat-section">
-    <div class="cat-section-head">
+    <div class="section-head">
       <h2>Shop by Category</h2>
       <a href="#" id="allListingsLink">All listings →</a>
     </div>
@@ -68,6 +78,7 @@
           <option value="10">Gem Mint 10</option>
           <option value="9">Mint 9</option>
           <option value="8">NM-MT 8</option>
+          <option value="low">Graded ≤ 7</option>
           <option value="raw">Raw / Ungraded</option>
         </select>
         <select id="sortFilter" class="filter-select">
@@ -103,13 +114,13 @@
 <footer class="gh-footer">
   <div class="gh-footer-inner">
     <span class="gh-logo-text sm">Grade<span>House</span></span>
-    <p>Buy &amp; sell graded collectibles. Demo build — listings are samples.</p>
-    <p class="version">v1.0.1</p>
+    <p>Buy &amp; sell graded collectibles. Demo build — listings are samples; card images via Pokémon TCG API, Scryfall, official One Piece TCG &amp; Wikimedia Commons.</p>
+    <p class="version">v1.1.0</p>
   </div>
 </footer>
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="script.js"></script>
+<script src="script.js?v=1.1.0"></script>
 </body>
 </html>
