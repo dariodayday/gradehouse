@@ -21,6 +21,8 @@ const ICONS = {
   lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
   box: '<path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7l8.7 5 8.7-5"/><path d="M12 22V12"/>',
   eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  star: '<path d="M11.5 3.6a.55.55 0 0 1 1 0l2.2 4.4a.55.55 0 0 0 .4.3l4.9.7a.55.55 0 0 1 .3 1l-3.5 3.4a.55.55 0 0 0-.2.5l.9 4.8a.55.55 0 0 1-.8.6l-4.4-2.3a.55.55 0 0 0-.5 0l-4.4 2.3a.55.55 0 0 1-.8-.6l.9-4.8a.55.55 0 0 0-.2-.5L3.7 10a.55.55 0 0 1 .3-1l4.9-.7a.55.55 0 0 0 .4-.3z"/>',
 };
 
 function icon(key, cls) {
@@ -47,15 +49,68 @@ const CATEGORIES = [
 
 const iconKey = (cat) => (ICONS[cat] ? cat : "all");
 
-// Live shows — Whatnot-style
+// Live shows — weekly schedule; a show is LIVE while inside its time window.
+// sched: { dow: 0=Sun..6=Sat (omit + daily:true for every day), h, m, dur (minutes) }
 const STREAMS = [
-  { id: 1, title: "Pokémon Rip & Ship — Chasing the Moonbreon", host: "CardCaveDan",   viewers: 1243, cat: "pokemon",  g: ["#41295a", "#2f0743"] },
-  { id: 2, title: "NHL Hobby Box Break — Young Guns Hunt",      host: "BreaksByBrody", viewers: 862,  cat: "hockey",   g: ["#0f2027", "#2c5364"] },
-  { id: 3, title: "$1 Start Sports Card Auctions",              host: "SlabCityShan",  viewers: 2114, cat: "baseball", g: ["#8e0e00", "#1f1c18"] },
-  { id: 4, title: "One Piece OP-09 Box Break",                  host: "GrandLineGems", viewers: 540,  cat: "anime",    g: ["#f12711", "#f5af19"] },
-  { id: 5, title: "Vintage Vault Show — Pre-War Baseball",      host: "TheGradeHouse", viewers: 388,  cat: "baseball", g: ["#232526", "#414345"] },
-  { id: 6, title: "Sneaker Heat Check — Live Cops",             host: "SoleSearchSam", viewers: 927,  cat: "sneakers", g: ["#093028", "#237a57"] },
+  { id: 1, title: "The Daily Grind — Open Break Night",         host: "TheGradeHouse", viewers: 412,  cat: "pokemon",  g: ["#2c1a4d", "#161028"], sched: { daily: true, h: 19, m: 0, dur: 240 } },
+  { id: 2, title: "Friday Night Rips — Pokémon Box Break",      host: "CardCaveDan",   viewers: 1243, cat: "pokemon",  g: ["#41295a", "#2f0743"], sched: { dow: 5, h: 20, m: 0, dur: 90 } },
+  { id: 3, title: "$1 Start Sports Card Auctions",              host: "SlabCityShan",  viewers: 2114, cat: "baseball", g: ["#8e0e00", "#1f1c18"], sched: { dow: 6, h: 14, m: 0, dur: 120 } },
+  { id: 4, title: "NHL Hobby Box Break — Young Guns Hunt",      host: "BreaksByBrody", viewers: 862,  cat: "hockey",   g: ["#0f2027", "#2c5364"], sched: { dow: 4, h: 19, m: 30, dur: 90 } },
+  { id: 5, title: "One Piece OP-09 Box Break",                  host: "GrandLineGems", viewers: 540,  cat: "anime",    g: ["#f12711", "#f5af19"], sched: { dow: 3, h: 21, m: 0, dur: 90 } },
+  { id: 6, title: "Vintage Vault Show — Pre-War Grails",        host: "TheGradeHouse", viewers: 388,  cat: "baseball", g: ["#232526", "#414345"], sched: { dow: 0, h: 19, m: 0, dur: 60 } },
+  { id: 7, title: "Sneaker Heat Check — Live Cops",             host: "SoleSearchSam", viewers: 927,  cat: "sneakers", g: ["#093028", "#237a57"], sched: { dow: 6, h: 20, m: 0, dur: 60 } },
 ];
+
+const DAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+// Next (or current) show window as {start, end}
+function showWindow(s) {
+  const now = new Date();
+  for (let back = 0; back < 8; back++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - back, s.sched.h, s.sched.m);
+    const ok = s.sched.daily || d.getDay() === s.sched.dow;
+    if (!ok) continue;
+    const end = new Date(d.getTime() + s.sched.dur * 60000);
+    if (end > now) return { start: d, end };
+    break;
+  }
+  for (let fwd = 1; fwd < 9; fwd++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + fwd, s.sched.h, s.sched.m);
+    if (s.sched.daily || d.getDay() === s.sched.dow) {
+      return { start: d, end: new Date(d.getTime() + s.sched.dur * 60000) };
+    }
+  }
+  return null;
+}
+
+function isLive(s) {
+  const w = showWindow(s);
+  const now = new Date();
+  return w && w.start <= now && now < w.end;
+}
+
+function countdownText(target) {
+  let secs = Math.max(0, Math.floor((target - new Date()) / 1000));
+  const d = Math.floor(secs / 86400); secs %= 86400;
+  const h = Math.floor(secs / 3600); secs %= 3600;
+  const m = Math.floor(secs / 60); const s = secs % 60;
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m ${String(s).padStart(2, "0")}s`;
+}
+
+function showTimeLabel(s) {
+  const t = new Date(2000, 0, 1, s.sched.h, s.sched.m)
+    .toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  return `${s.sched.daily ? "Daily" : DAY_NAMES[s.sched.dow] + "s"} · ${t}`;
+}
+
+let follows = new Set(JSON.parse(localStorage.getItem("gh_follows") || "[]"));
+function toggleFollow(id) {
+  follows.has(id) ? follows.delete(id) : follows.add(id);
+  localStorage.setItem("gh_follows", JSON.stringify([...follows]));
+  renderLive();
+}
 
 // Listings. img = real card image; face = designed placeholder.
 // Graded (non-raw) items render inside a GradeHouse slab frame.
@@ -235,7 +290,7 @@ function mapDbRow(row) {
   return {
     id: row.id, dbId: row.id, userId: row.user_id,
     title: row.title, set: row.set_name || "—", cat: row.cat,
-    grade: row.grade, type: row.type, price: Number(row.price),
+    grade: row.grade, type: row.type, price: Number(row.price), sold: row.sold,
     views: row.views || 0, ts: Date.parse(row.created_at),
     img: row.img_url || null,
     face: row.img_url ? null : { g: CAT_COLORS[row.cat] || ["#232526", "#414345"], mono },
@@ -298,21 +353,46 @@ function cardArt(l, cls) {
 }
 
 function renderLive() {
-  $("liveRow").innerHTML = STREAMS.map(
-    (s) => `<div class="live-card" data-soon>
+  const shows = STREAMS
+    .map((s) => ({ s, live: isLive(s), win: showWindow(s) }))
+    .sort((a, b) => (b.live - a.live) || (a.win.start - b.win.start));
+
+  $("liveRow").innerHTML = shows.map(({ s, live, win }) => `
+    <div class="live-card ${live ? "" : "upcoming"}" data-soon>
       <div class="live-thumb" style="background:linear-gradient(150deg,${s.g[0]},${s.g[1]})">
-        <span class="live-badge"><span class="live-dot"></span>LIVE</span>
-        <span class="live-viewers">${icon("eye", "icn-sm")}${viewsLabel(s.viewers)}</span>
+        ${live
+          ? `<span class="live-badge"><span class="live-dot"></span>LIVE</span>
+             <span class="live-viewers">${icon("eye", "icn-sm")}${viewsLabel(s.viewers)}</span>`
+          : `<span class="up-badge">${icon("clock", "icn-xs")}UPCOMING</span>
+             <span class="live-viewers"><span data-cd="${s.id}">${countdownText(win.start)}</span></span>`}
         <span class="live-avatar">${s.host.slice(0, 2).toUpperCase()}</span>
         <span class="live-cat">${icon(iconKey(s.cat), "icn-sm")}</span>
       </div>
       <div class="live-info">
         <span class="live-title">${s.title}</span>
-        <span class="live-host">@${s.host}</span>
+        <div class="live-meta-row">
+          <span class="live-host">@${s.host} · ${showTimeLabel(s)}</span>
+          <button class="follow-btn ${follows.has(s.id) ? "on" : ""}" data-follow="${s.id}">
+            ${icon("star", "icn-xs")}${follows.has(s.id) ? "Following" : "Follow"}
+          </button>
+        </div>
       </div>
-    </div>`
-  ).join("");
+    </div>`).join("");
 }
+
+// Tick the countdowns; re-render on a live/upcoming transition
+setInterval(() => {
+  let transition = false;
+  STREAMS.forEach((s) => {
+    const el = document.querySelector(`[data-cd="${s.id}"]`);
+    if (isLive(s)) {
+      if (el) transition = true; // was upcoming, now live
+    } else if (el) {
+      el.textContent = countdownText(showWindow(s).start);
+    }
+  });
+  if (transition) renderLive();
+}, 1000);
 
 function renderCategories() {
   $("catRow").innerHTML = CATEGORIES.map(
@@ -355,7 +435,7 @@ function renderGrid() {
       <div class="listing-art">
         ${cardArt(l, "listing-img")}
         <span class="listing-badge ${l.type}">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type}</span>
-        ${l.grade === "raw" ? `<span class="grade-chip raw">RAW</span>` : ""}
+        ${l.sold ? `<span class="grade-chip sold-chip">SOLD</span>` : l.grade === "raw" ? `<span class="grade-chip raw">RAW</span>` : ""}
       </div>
       <div class="listing-info">
         <span class="listing-title">${l.title}</span>
@@ -381,11 +461,55 @@ function openModal(id) {
       <span class="modal-tag">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type === "vault" ? "Vault" : "Direct"}</span>
       <span class="modal-tag">${icon("eye", "icn-xs")}${viewsLabel(l.views)} views</span>
     </div>
-    <div class="modal-price">${money(l.price)}</div>
-    <button class="btn-buy" data-soon>Buy Now</button>
-    ${mine ? `<button class="btn-ghost btn-danger" data-remove="${l.dbId}">Remove my listing</button>` : ""}`;
+    <div class="modal-price">${money(l.price)}${l.sold ? ` <span class="sold-flag">SOLD</span>` : ""}</div>
+    ${l.sold
+      ? `<button class="btn-buy" disabled>Sold</button>`
+      : `<button class="btn-buy" data-soon>Buy Now</button>`}
+    ${l.dbId && !mine && !l.sold && currentUser ? `
+      <button class="btn-ghost" data-offer-toggle>Make an offer</button>
+      <form class="offer-form" data-offer-form="${l.dbId}" hidden>
+        <div class="gh-form-row">
+          <input type="number" class="gh-input" data-offer-amount min="1" step="1" placeholder="Your offer (CAD)" required>
+          <button type="submit" class="btn-buy btn-offer-send">Send</button>
+        </div>
+        <input type="text" class="gh-input" data-offer-msg maxlength="140" placeholder="Message (optional)">
+      </form>` : ""}
+    ${mine ? `<button class="btn-ghost btn-danger" data-remove="${l.dbId}">Remove my listing</button>` : ""}
+    <div class="offer-list" id="offerList"></div>`;
   $("modalOverlay").hidden = false;
   document.body.style.overflow = "hidden";
+  if (l.dbId && supa && currentUser) loadOffers(l, mine);
+}
+
+async function loadOffers(l, mine) {
+  const { data, error } = await supa
+    .from("offers")
+    .select("*")
+    .eq("listing_id", l.dbId)
+    .order("created_at", { ascending: false });
+  if (error || !data || !data.length) return;
+  const el = $("offerList");
+  if (!el) return;
+  if (mine) {
+    el.innerHTML = `<h4>Offers on this listing</h4>` + data.map((o) => `
+      <div class="offer-row">
+        <span class="offer-amt">${money(Number(o.amount))}</span>
+        <span class="offer-msg">${o.message ? o.message.replace(/</g, "&lt;") : ""}</span>
+        ${o.status === "pending"
+          ? `<span class="offer-actions">
+               <button class="offer-btn accept" data-offer-decide="accepted" data-oid="${o.id}" data-lid="${l.dbId}">Accept</button>
+               <button class="offer-btn decline" data-offer-decide="declined" data-oid="${o.id}">Decline</button>
+             </span>`
+          : `<span class="offer-status ${o.status}">${o.status}</span>`}
+      </div>`).join("");
+  } else {
+    const own = data.filter((o) => o.buyer_id === currentUser.id);
+    if (own.length) {
+      el.innerHTML = own.map((o) =>
+        `<div class="offer-row"><span class="offer-amt">You offered ${money(Number(o.amount))}</span>
+         <span class="offer-status ${o.status}">${o.status}</span></div>`).join("");
+    }
+  }
 }
 
 function closeModal() {
@@ -456,10 +580,16 @@ function bindEvents() {
   $("logoLink").addEventListener("click", (e) => e.preventDefault());
 
   document.body.addEventListener("click", (e) => {
+    const fol = e.target.closest("[data-follow]");
+    if (fol) {
+      e.preventDefault();
+      toggleFollow(Number(fol.dataset.follow));
+      return;
+    }
     const soon = e.target.closest("[data-soon]");
     if (soon) {
       e.preventDefault();
-      toast("Coming soon — live shows drop with v2");
+      toast("Live streaming drops with v2 — follow a show to lock in your spot");
     }
   });
 }
@@ -601,17 +731,65 @@ function initCloud() {
   );
 
   $("modalBody").parentElement.addEventListener("click", async (e) => {
-    const btn = e.target.closest("[data-remove]");
-    if (!btn) return;
+    const rm = e.target.closest("[data-remove]");
+    if (rm) {
+      rm.disabled = true;
+      const { error } = await supa.from("listings").delete().eq("id", rm.dataset.remove);
+      if (!error) {
+        closeModal();
+        toast("Listing removed");
+        await loadDbListings();
+      } else {
+        rm.disabled = false;
+        toast("Couldn't remove listing");
+      }
+      return;
+    }
+    const tog = e.target.closest("[data-offer-toggle]");
+    if (tog) {
+      const form = document.querySelector("[data-offer-form]");
+      if (form) form.hidden = !form.hidden;
+      return;
+    }
+    const dec = e.target.closest("[data-offer-decide]");
+    if (dec) {
+      dec.disabled = true;
+      const status = dec.dataset.offerDecide;
+      const { error } = await supa.from("offers").update({ status }).eq("id", dec.dataset.oid);
+      if (!error && status === "accepted" && dec.dataset.lid) {
+        await supa.from("listings").update({ sold: true }).eq("id", dec.dataset.lid);
+        await loadDbListings();
+      }
+      if (!error) {
+        toast(status === "accepted" ? "Offer accepted — marked as sold" : "Offer declined");
+        closeModal();
+      } else {
+        dec.disabled = false;
+        toast("Couldn't update offer");
+      }
+    }
+  });
+
+  $("modalBody").parentElement.addEventListener("submit", async (e) => {
+    const form = e.target.closest("[data-offer-form]");
+    if (!form) return;
+    e.preventDefault();
+    const amount = Number(form.querySelector("[data-offer-amount]").value);
+    if (!amount) return;
+    const btn = form.querySelector(".btn-offer-send");
     btn.disabled = true;
-    const { error } = await supa.from("listings").delete().eq("id", btn.dataset.remove);
-    if (!error) {
-      closeModal();
-      toast("Listing removed");
-      await loadDbListings();
+    const { error } = await supa.from("offers").insert({
+      listing_id: form.dataset.offerForm,
+      buyer_id: currentUser.id,
+      amount,
+      message: form.querySelector("[data-offer-msg]").value.trim(),
+    });
+    btn.disabled = false;
+    if (error) {
+      toast("Couldn't send offer");
     } else {
-      btn.disabled = false;
-      toast("Couldn't remove listing");
+      form.hidden = true;
+      toast("Offer sent to the seller");
     }
   });
 
@@ -785,6 +963,20 @@ function clearScanAttach() {
   $("scanAttach").hidden = true;
 }
 
+function initBottomNav() {
+  $("bottomNav").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-bnav]");
+    if (!btn) return;
+    document.querySelectorAll("[data-bnav]").forEach((b) => b.classList.toggle("active", b === btn));
+    const go = btn.dataset.bnav;
+    if (go === "browse") window.scrollTo({ top: 0, behavior: "smooth" });
+    else if (go === "live") $("liveSection").scrollIntoView({ behavior: "smooth" });
+    else if (go === "scan") openScanner();
+    else if (go === "sell") $("sellLink").click();
+    else if (go === "account") $("authBtn").click();
+  });
+}
+
 function initScanner() {
   $("scanLink").addEventListener("click", (e) => { e.preventDefault(); openScanner(); });
   $("sellScanBtn").addEventListener("click", () => { closeOverlay("sellOverlay"); openScanner(); });
@@ -820,6 +1012,7 @@ function init() {
   bindEvents();
   initCloud();
   initScanner();
+  initBottomNav();
 }
 
 init();
