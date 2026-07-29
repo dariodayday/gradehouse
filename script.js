@@ -485,10 +485,11 @@ async function handleSellSubmit(e) {
   $("sellSubmit").textContent = "Posting…";
   try {
     let imgUrl = null;
-    const file = $("sellPhoto").files[0];
+    const file = $("sellPhoto").files[0] || (pendingScanPhoto && pendingScanPhoto.blob);
     if (file) {
-      const path = `${currentUser.id}/${Date.now()}-${file.name.replace(/[^\w.-]/g, "_")}`;
-      const { error: upErr } = await supa.storage.from("card-photos").upload(path, file);
+      const name = file.name ? file.name.replace(/[^\w.-]/g, "_") : "scan.jpg";
+      const path = `${currentUser.id}/${Date.now()}-${name}`;
+      const { error: upErr } = await supa.storage.from("card-photos").upload(path, file, { contentType: file.type || "image/jpeg" });
       if (upErr) throw upErr;
       imgUrl = supa.storage.from("card-photos").getPublicUrl(path).data.publicUrl;
     }
@@ -504,6 +505,7 @@ async function handleSellSubmit(e) {
     });
     if (error) throw error;
     $("sellForm").reset();
+    clearScanAttach();
     closeOverlay("sellOverlay");
     toast("Listed — it's live on the marketplace");
     await loadDbListings();
@@ -581,6 +583,183 @@ function initCloud() {
   loadDbListings();
 }
 
+// ── Card scanner ────────────────────────────────────────────
+let scanStream = null;
+let scanBusy = false;
+let lastScan = null; // { canvas, cards }
+let pendingScanPhoto = null; // { blob, dataUrl } attached to the sell form
+
+async function openScanner() {
+  if (!supa) return toast("Scanning needs an internet connection");
+  if (!currentUser) {
+    setAuthMode("signin");
+    openOverlay("authOverlay");
+    return toast("Sign in to scan cards");
+  }
+  const scanner = $("scanner");
+  scanner.hidden = false;
+  document.body.style.overflow = "hidden";
+  try {
+    scanStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false,
+    });
+    $("scanVideo").srcObject = scanStream;
+    $("scanStatus").textContent = "Hover over a card or a binder page";
+  } catch (ex) {
+    closeScanner();
+    toast("Couldn't open the camera — check permissions");
+  }
+}
+
+function closeScanner() {
+  if (scanStream) {
+    scanStream.getTracks().forEach((t) => t.stop());
+    scanStream = null;
+  }
+  const scanner = $("scanner");
+  scanner.hidden = true;
+  scanner.classList.remove("frozen");
+  $("scanVideo").hidden = false;
+  $("scanFrame").hidden = true;
+  $("scanResults").hidden = true;
+  $("scanCapture").hidden = false;
+  $("scanAgain").hidden = true;
+  document.body.style.overflow = "";
+  lastScan = null;
+  scanBusy = false;
+}
+
+function resetScanner() {
+  const scanner = $("scanner");
+  scanner.classList.remove("frozen");
+  $("scanVideo").hidden = false;
+  $("scanFrame").hidden = true;
+  $("scanResults").hidden = true;
+  $("scanCapture").hidden = false;
+  $("scanCapture").disabled = false;
+  $("scanAgain").hidden = true;
+  $("scanStatus").textContent = "Hover over a card or a binder page";
+  lastScan = null;
+}
+
+async function captureScan() {
+  if (scanBusy || !scanStream) return;
+  scanBusy = true;
+  const video = $("scanVideo");
+  const frame = $("scanFrame");
+  // Freeze the frame, capped at ~1568px on the long edge
+  const scale = Math.min(1, 1568 / Math.max(video.videoWidth, video.videoHeight));
+  frame.width = Math.round(video.videoWidth * scale);
+  frame.height = Math.round(video.videoHeight * scale);
+  const ctx = frame.getContext("2d");
+  ctx.drawImage(video, 0, 0, frame.width, frame.height);
+
+  $("scanner").classList.add("frozen");
+  video.hidden = true;
+  frame.hidden = false;
+  $("scanCapture").disabled = true;
+  $("scanStatus").textContent = "Identifying cards…";
+
+  try {
+    const b64 = frame.toDataURL("image/jpeg", 0.85).split(",")[1];
+    const { data, error } = await supa.functions.invoke("scan-card", {
+      body: { image: b64, media_type: "image/jpeg" },
+    });
+    if (error) throw error;
+    if (data.error) throw new Error(data.error);
+    lastScan = { frame, cards: data.cards || [] };
+    drawScanBoxes(ctx, frame, lastScan.cards);
+    renderScanResults(lastScan.cards, frame);
+    $("scanStatus").textContent = lastScan.cards.length
+      ? `Found ${lastScan.cards.length} card${lastScan.cards.length === 1 ? "" : "s"}`
+      : "No cards found — try again";
+  } catch (ex) {
+    $("scanStatus").textContent = "Scan failed — " + (ex.message || "try again");
+  } finally {
+    $("scanCapture").hidden = true;
+    $("scanAgain").hidden = false;
+    scanBusy = false;
+  }
+}
+
+function drawScanBoxes(ctx, frame, cards) {
+  ctx.lineWidth = Math.max(3, frame.width / 400);
+  ctx.strokeStyle = "#34d399";
+  ctx.shadowColor = "rgba(52, 211, 153, 0.7)";
+  ctx.shadowBlur = 10;
+  cards.forEach((c) => {
+    ctx.strokeRect(c.box.x * frame.width, c.box.y * frame.height, c.box.w * frame.width, c.box.h * frame.height);
+  });
+  ctx.shadowBlur = 0;
+}
+
+function cropCard(frame, box) {
+  const c = document.createElement("canvas");
+  const pad = 0.02;
+  const x = Math.max(0, (box.x - pad)) * frame.width;
+  const y = Math.max(0, (box.y - pad)) * frame.height;
+  const w = Math.min(1 - box.x + pad, box.w + pad * 2) * frame.width;
+  const h = Math.min(1 - box.y + pad, box.h + pad * 2) * frame.height;
+  c.width = Math.round(w);
+  c.height = Math.round(h);
+  c.getContext("2d").drawImage(frame, x, y, w, h, 0, 0, c.width, c.height);
+  return c;
+}
+
+function renderScanResults(cards, frame) {
+  const el = $("scanResults");
+  if (!cards.length) {
+    el.innerHTML = `<p class="scan-empty">Nothing identified — get closer, add light, and rescan.</p>`;
+  } else {
+    el.innerHTML = `<h3>${cards.length} card${cards.length === 1 ? "" : "s"} found</h3>` + cards.map((c, i) => `
+      <div class="scan-hit">
+        <img src="${cropCard(frame, c.box).toDataURL("image/jpeg", 0.8)}" alt="">
+        <div class="scan-hit-info">
+          <div class="scan-hit-title">${c.title}</div>
+          <div class="scan-hit-sub">${c.set_name} · ${gradeLabel(c.grade)}</div>
+        </div>
+        <span class="scan-hit-price">~${money(c.price_estimate)}</span>
+        <button class="btn-sell-hit" data-scan-sell="${i}">Sell</button>
+      </div>`).join("");
+  }
+  el.hidden = false;
+}
+
+function sellFromScan(i) {
+  const c = lastScan.cards[i];
+  const crop = cropCard(lastScan.frame, c.box);
+  const dataUrl = crop.toDataURL("image/jpeg", 0.88);
+  crop.toBlob((blob) => { pendingScanPhoto = { blob, dataUrl }; }, "image/jpeg", 0.88);
+  $("sellTitle").value = c.title;
+  $("sellSet").value = c.set_name;
+  $("sellCat").value = CATEGORIES.some((k) => k.key === c.cat) ? c.cat : "pokemon";
+  $("sellGrade").value = c.grade;
+  $("sellPrice").value = c.price_estimate || "";
+  $("scanAttachImg").src = dataUrl;
+  $("scanAttach").hidden = false;
+  closeScanner();
+  openOverlay("sellOverlay");
+}
+
+function clearScanAttach() {
+  pendingScanPhoto = null;
+  $("scanAttach").hidden = true;
+}
+
+function initScanner() {
+  $("scanLink").addEventListener("click", (e) => { e.preventDefault(); openScanner(); });
+  $("sellScanBtn").addEventListener("click", () => { closeOverlay("sellOverlay"); openScanner(); });
+  $("scanClose").addEventListener("click", closeScanner);
+  $("scanCapture").addEventListener("click", captureScan);
+  $("scanAgain").addEventListener("click", resetScanner);
+  $("scanAttachClear").addEventListener("click", clearScanAttach);
+  $("scanResults").addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-scan-sell]");
+    if (btn) sellFromScan(Number(btn.dataset.scanSell));
+  });
+}
+
 function initIntro() {
   const intro = $("intro");
   if (!intro) return;
@@ -602,6 +781,7 @@ function init() {
   renderGrid();
   bindEvents();
   initCloud();
+  initScanner();
 }
 
 init();

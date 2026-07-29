@@ -7,7 +7,7 @@
   <meta name="description" content="GradeHouse is your marketplace for graded cards, comics, coins, toys, sneakers, watches and more. Live breaks, auctions, buy &amp; sell.">
   <meta name="theme-color" content="#0D0F0E">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' x2='21' y1='22' y2='22'/%3E%3Cline x1='6' x2='6' y1='18' y2='11'/%3E%3Cline x1='10' x2='10' y1='18' y2='11'/%3E%3Cline x1='14' x2='14' y1='18' y2='11'/%3E%3Cline x1='18' x2='18' y1='18' y2='11'/%3E%3Cpolygon points='12 2 20 7 4 7'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=1.3.1">
+  <link rel="stylesheet" href="styles.css?v=1.4.0">
 </head>
 <body class="has-intro">
 
@@ -87,6 +87,7 @@
       <a href="#" class="active">Marketplace</a>
       <a href="#liveSection">Live</a>
       <a href="#" id="sellLink">Sell</a>
+      <a href="#" id="scanLink">Scan</a>
       <a href="#" data-soon>Vault</a>
     </nav>
     <button class="gh-signin" id="authBtn">Sign In</button>
@@ -180,7 +181,7 @@
   <div class="gh-footer-inner">
     <span class="gh-logo-text sm">Grade<span>House</span></span>
     <p>Buy &amp; sell graded collectibles. Demo build — listings are samples; card images via Pokémon TCG API, Scryfall, official One Piece TCG &amp; Wikimedia Commons.</p>
-    <p class="version">v1.3.1</p>
+    <p class="version">v1.4.0</p>
   </div>
 </footer>
 
@@ -245,9 +246,35 @@
       <label class="gh-label">Photo (optional)
         <input type="file" id="sellPhoto" class="gh-input gh-file" accept="image/*">
       </label>
+      <div class="scan-attach" id="scanAttach" hidden>
+        <img id="scanAttachImg" alt="Scanned card">
+        <span>Scanned photo attached</span>
+        <button type="button" class="btn-ghost" id="scanAttachClear">Remove</button>
+      </div>
+      <button type="button" class="btn-ghost" id="sellScanBtn">Or scan the card with your camera</button>
       <p class="form-error" id="sellError" hidden></p>
       <button type="submit" class="btn-buy" id="sellSubmit">Post Listing</button>
     </form>
+  </div>
+</div>
+
+<!-- Card scanner -->
+<div class="scanner" id="scanner" hidden>
+  <video id="scanVideo" autoplay playsinline muted></video>
+  <canvas id="scanFrame" hidden></canvas>
+  <div class="scan-reticle" id="scanReticle">
+    <i class="scan-corner tl"></i><i class="scan-corner tr"></i>
+    <i class="scan-corner bl"></i><i class="scan-corner br"></i>
+    <span class="scan-line"></span>
+  </div>
+  <div class="scan-top">
+    <button class="scan-close" id="scanClose" aria-label="Close">✕</button>
+    <span class="scan-status" id="scanStatus">Hover over a card or a binder page</span>
+  </div>
+  <div class="scan-results" id="scanResults" hidden></div>
+  <div class="scan-controls">
+    <button class="scan-shutter" id="scanCapture" aria-label="Scan"></button>
+    <button class="btn-ghost scan-again" id="scanAgain" hidden>Scan again</button>
   </div>
 </div>
 
@@ -255,6 +282,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js?v=1.3.0"></script>
-<script src="script.js?v=1.3.1"></script>
+<script src="script.js?v=1.4.0"></script>
 </body>
 </html>

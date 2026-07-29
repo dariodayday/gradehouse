@@ -340,6 +340,98 @@ a { color: inherit; }
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* ── Card scanner ───────────────────────────────────────────── */
+.scanner {
+  position: fixed; inset: 0; z-index: 600; background: #000;
+  display: flex; align-items: center; justify-content: center;
+}
+.scanner[hidden] { display: none; }
+.scanner video, .scanner #scanFrame {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain;
+}
+.scan-reticle {
+  position: absolute; inset: 12% 10%; pointer-events: none;
+}
+.scan-corner {
+  position: absolute; width: 34px; height: 34px;
+  border: 3px solid var(--brand); opacity: 0.9;
+}
+.scan-corner.tl { top: 0; left: 0; border-right: none; border-bottom: none; border-radius: 8px 0 0 0; }
+.scan-corner.tr { top: 0; right: 0; border-left: none; border-bottom: none; border-radius: 0 8px 0 0; }
+.scan-corner.bl { bottom: 0; left: 0; border-right: none; border-top: none; border-radius: 0 0 0 8px; }
+.scan-corner.br { bottom: 0; right: 0; border-left: none; border-top: none; border-radius: 0 0 8px 0; }
+.scan-line {
+  position: absolute; left: 4%; right: 4%; height: 2px; top: 0;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  box-shadow: 0 0 12px var(--brand);
+  animation: scanSweep 2.4s ease-in-out infinite;
+}
+@keyframes scanSweep {
+  0%, 100% { top: 2%; opacity: 0.9; }
+  50% { top: 96%; opacity: 0.9; }
+}
+.scanner.frozen .scan-line, .scanner.frozen .scan-corner { display: none; }
+.scan-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; gap: 12px;
+  padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+  background: linear-gradient(rgba(0, 0, 0, 0.6), transparent);
+}
+.scan-close {
+  background: rgba(0, 0, 0, 0.5); border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff; width: 36px; height: 36px; border-radius: 10px; font-size: 15px;
+}
+.scan-status { color: #fff; font-size: 13px; font-weight: 600; text-shadow: 0 1px 4px rgba(0,0,0,0.8); }
+.scan-controls {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 16px 16px calc(22px + env(safe-area-inset-bottom));
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.6));
+}
+.scan-shutter {
+  width: 66px; height: 66px; border-radius: 50%;
+  background: #fff; border: 5px solid rgba(255, 255, 255, 0.35);
+  background-clip: padding-box; transition: transform 0.1s;
+}
+.scan-shutter:active { transform: scale(0.92); }
+.scan-shutter:disabled { opacity: 0.4; }
+.scan-again { color: #fff; width: auto; }
+.scan-results {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 46%;
+  overflow-y: auto; z-index: 2;
+  background: rgba(13, 15, 14, 0.94); backdrop-filter: blur(14px);
+  border-top: 1px solid var(--border); border-radius: 16px 16px 0 0;
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
+}
+.scan-results h3 { font-size: 14px; margin-bottom: 10px; color: var(--text); }
+.scan-hit {
+  display: flex; align-items: center; gap: 12px;
+  padding: 9px 0; border-bottom: 1px solid var(--border);
+}
+.scan-hit:last-child { border-bottom: none; }
+.scan-hit img {
+  width: 44px; height: 60px; object-fit: cover; border-radius: 6px;
+  background: var(--card); flex-shrink: 0;
+}
+.scan-hit-info { flex: 1; min-width: 0; }
+.scan-hit-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.scan-hit-sub { font-size: 11px; color: var(--text-muted); }
+.scan-hit-price { font-size: 13px; font-weight: 800; color: var(--brand); white-space: nowrap; }
+.scan-hit .btn-sell-hit {
+  background: var(--brand); color: #06281c; border: none;
+  padding: 7px 13px; border-radius: 8px; font-size: 12px; font-weight: 700;
+  flex-shrink: 0;
+}
+.scan-empty { color: var(--text-muted); font-size: 13px; padding: 8px 0; }
+
+.scan-attach {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--card); border: 1px solid var(--brand); border-radius: 8px;
+  padding: 8px 10px; font-size: 12px; color: var(--text-muted);
+}
+.scan-attach img { width: 34px; height: 46px; object-fit: cover; border-radius: 4px; }
+.scan-attach .btn-ghost { width: auto; padding: 4px 8px; }
+
 /* ── Startup intro: slab toss ───────────────────────────────── */
 .intro {
   --slab-w: clamp(68px, 15vw, 98px);
