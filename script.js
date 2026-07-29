@@ -381,7 +381,22 @@ function bindEvents() {
   });
 }
 
+function initIntro() {
+  const intro = $("intro");
+  if (!intro) return;
+  if (document.body.classList.contains("intro-off")) {
+    intro.remove();
+    return;
+  }
+  intro.addEventListener("click", () => {
+    document.body.classList.remove("has-intro");
+    document.body.classList.add("intro-off");
+  });
+  setTimeout(() => intro.remove(), 2600);
+}
+
 function init() {
+  initIntro();
   renderLive();
   renderCategories();
   renderGrid();

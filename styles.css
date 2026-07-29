@@ -310,6 +310,136 @@ a { color: inherit; }
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
+/* ── Startup intro: slab toss ───────────────────────────────── */
+.intro {
+  --slab-w: clamp(68px, 15vw, 98px);
+  --flight: 0.52s;
+  --intro-gap: 0.11s;
+  --label-red: #c8102e;
+  position: fixed; inset: 0; z-index: 500;
+  background: radial-gradient(70% 55% at 50% 50%, transparent, var(--bg) 100%), var(--surface);
+  overflow: hidden; cursor: pointer;
+  animation: introLift 0.32s ease-in 1.88s forwards;
+}
+@keyframes introLift { to { opacity: 0; visibility: hidden; } }
+
+.intro .table {
+  position: absolute; top: 50%; left: 50%;
+  width: var(--slab-w); aspect-ratio: 1 / 1.62;
+  translate: -50% -50%;
+}
+
+.intro .slab {
+  position: absolute; inset: 0; border-radius: 7px;
+  padding: 6% 7%; display: flex; flex-direction: column; gap: 5%;
+  overflow: hidden;
+  background: linear-gradient(155deg, #f4f7fa 0%, #d2dae4 45%, #aeb9c7 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.75),
+    inset 0 -6px 10px rgba(0, 0, 0, 0.12),
+    0 10px 20px rgba(0, 0, 0, 0.5);
+  animation: toss var(--flight) cubic-bezier(0.18, 0.85, 0.28, 1) both;
+}
+.intro .slab::before {
+  content: ""; position: absolute; top: -20%; left: -40%;
+  width: 38%; height: 150%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: rotate(14deg); pointer-events: none; z-index: 2;
+}
+
+@keyframes toss {
+  0% { opacity: 0; transform: translate(-85vw, var(--fy)) rotate(var(--r0)) scale(1.18); }
+  12% { opacity: 1; }
+  72% { transform: translate(calc(var(--x) * 1.07), calc(var(--y) * 1.07)) rotate(calc(var(--r) + 7deg)) scale(1.04); }
+  100% { opacity: 1; transform: translate(var(--x), var(--y)) rotate(var(--r)) scale(1); }
+}
+
+/* where each slab lands — tweak to rearrange the pile */
+.intro .slab:nth-child(1)  { --x: -22vmin; --y: -13vmin; --r: -13deg; --r0: -160deg; --fy: -22vmin; animation-delay: 0s; }
+.intro .slab:nth-child(2)  { --x: 17vmin;  --y: -19vmin; --r: 9deg;   --r0: 140deg;  --fy: -6vmin;  animation-delay: calc(var(--intro-gap) * 1); }
+.intro .slab:nth-child(3)  { --x: -5vmin;  --y: 7vmin;   --r: -4deg;  --r0: -120deg; --fy: 14vmin;  animation-delay: calc(var(--intro-gap) * 2); }
+.intro .slab:nth-child(4)  { --x: 25vmin;  --y: 10vmin;  --r: 17deg;  --r0: 175deg;  --fy: -2vmin;  animation-delay: calc(var(--intro-gap) * 3); }
+.intro .slab:nth-child(5)  { --x: -27vmin; --y: 13vmin;  --r: 6deg;   --r0: -190deg; --fy: 18vmin;  animation-delay: calc(var(--intro-gap) * 4); }
+.intro .slab:nth-child(6)  { --x: 3vmin;   --y: -6vmin;  --r: -21deg; --r0: 110deg;  --fy: -16vmin; animation-delay: calc(var(--intro-gap) * 5); }
+.intro .slab:nth-child(7)  { --x: 19vmin;  --y: -1vmin;  --r: -8deg;  --r0: -145deg; --fy: 8vmin;   animation-delay: calc(var(--intro-gap) * 6); }
+.intro .slab:nth-child(8)  { --x: -15vmin; --y: -3vmin;  --r: 14deg;  --r0: 165deg;  --fy: -10vmin; animation-delay: calc(var(--intro-gap) * 7); }
+.intro .slab:nth-child(9)  { --x: 9vmin;   --y: 15vmin;  --r: -16deg; --r0: -130deg; --fy: 20vmin;  animation-delay: calc(var(--intro-gap) * 8); }
+.intro .slab:nth-child(10) { --x: -2vmin;  --y: -17vmin; --r: 3deg;   --r0: 150deg;  --fy: -4vmin;  animation-delay: calc(var(--intro-gap) * 9); }
+
+.intro .label {
+  height: 17%; background: var(--label-red); border-radius: 2px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 7%; box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+}
+.intro .lines { display: grid; gap: 2px; }
+.intro .lines i { display: block; height: 2px; background: #fff; opacity: 0.92; border-radius: 1px; }
+.intro .lines i:nth-child(1) { width: 28px; }
+.intro .lines i:nth-child(2) { width: 20px; }
+.intro .lines i:nth-child(3) { width: 24px; }
+.intro .grade { color: #fff; font-weight: 900; font-size: clamp(7px, 1.8vw, 10px); letter-spacing: 0.04em; }
+
+.intro .art {
+  flex: 1; border-radius: 3px; position: relative; overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+.intro .art::after {
+  content: ""; position: absolute; inset: auto 0 0 0; height: 22%;
+  background: rgba(12, 16, 32, 0.28);
+}
+.intro .fig {
+  position: absolute; left: 50%; bottom: 6%;
+  width: 82%; height: 78%; translate: -50% 0;
+  fill: #161b33; z-index: 1;
+}
+.intro .fig .eye { fill: #fff3d0; }
+
+.intro .a-fire  { background: linear-gradient(#ffd79a, #f2703c 55%, #7a2b1e); }
+.intro .a-ice   { background: linear-gradient(#e4f1ff, #7fb6e8 50%, #264a7a); }
+.intro .a-water { background: linear-gradient(#beebff, #3e9bd8 55%, #173b66); }
+.intro .a-turf  { background: linear-gradient(#cdeba0, #4fa24b 55%, #1e5230); }
+.intro .a-dusk  { background: linear-gradient(#fbd277, #f0865c 42%, #8e5aa8 78%, #3b2e63); }
+.intro .a-volt  { background: linear-gradient(#fff3b0, #f5c518 55%, #8a6a0c); }
+.intro .a-leaf  { background: linear-gradient(#ddf3b8, #5fb65a 55%, #22532e); }
+.intro .a-berry { background: linear-gradient(#ffd6e8, #e8506b 55%, #6e1f3c); }
+.intro .a-void  { background: linear-gradient(#c9beea, #6c4fa8 55%, #241a44); }
+.intro .a-sand  { background: linear-gradient(#ffe9c2, #d89b4e 55%, #6b4520); }
+
+.intro .slab-footer { height: 9%; border-radius: 2px; background: rgba(20, 26, 45, 0.22); }
+
+.intro-logo {
+  position: absolute; left: 50%; bottom: 12%; transform: translateX(-50%);
+  font-size: clamp(22px, 4vw, 32px); font-weight: 800; letter-spacing: -0.02em;
+  color: var(--text); opacity: 0;
+  animation: introLogoIn 0.5s ease-out 1.15s forwards;
+}
+.intro-logo span { color: var(--brand); }
+@keyframes introLogoIn { to { opacity: 1; } }
+
+/* page reveal after the intro */
+body.has-intro .gh-header,
+body.has-intro .hero,
+body.has-intro .page-body,
+body.has-intro .gh-footer {
+  opacity: 0;
+  animation: siteIn 0.42s ease-out 1.92s forwards;
+}
+@keyframes siteIn { to { opacity: 1; } }
+
+/* intro skipped or already seen this session */
+body.intro-off .intro { display: none; }
+body.intro-off .gh-header,
+body.intro-off .hero,
+body.intro-off .page-body,
+body.intro-off .gh-footer { opacity: 1; animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .intro, .intro .slab, .intro-logo,
+  body.has-intro .gh-header, body.has-intro .hero,
+  body.has-intro .page-body, body.has-intro .gh-footer {
+    animation-duration: 0.01ms !important; animation-delay: 0ms !important;
+  }
+}
+
 @media (max-width: 640px) {
   .gh-nav { display: none; }
   .gh-header-inner { justify-content: space-between; }

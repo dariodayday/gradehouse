@@ -7,9 +7,81 @@
   <meta name="description" content="GradeHouse is your marketplace for graded cards, comics, coins, toys, sneakers, watches and more. Live breaks, auctions, buy &amp; sell.">
   <meta name="theme-color" content="#0D0F0E">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2334d399' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cline x1='3' x2='21' y1='22' y2='22'/%3E%3Cline x1='6' x2='6' y1='18' y2='11'/%3E%3Cline x1='10' x2='10' y1='18' y2='11'/%3E%3Cline x1='14' x2='14' y1='18' y2='11'/%3E%3Cline x1='18' x2='18' y1='18' y2='11'/%3E%3Cpolygon points='12 2 20 7 4 7'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="styles.css?v=1.1.0">
+  <link rel="stylesheet" href="styles.css?v=1.2.0">
 </head>
-<body>
+<body class="has-intro">
+
+<script>
+  // Before first paint: skip the intro if it already played this session
+  if (sessionStorage.getItem("gh-intro-seen")) {
+    document.body.classList.replace("has-intro", "intro-off");
+  } else {
+    sessionStorage.setItem("gh-intro-seen", "1");
+  }
+</script>
+
+<!-- Startup animation: slab toss -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="critter" viewBox="0 0 100 100">
+      <path d="M30 34 L23 10 L45 26 Z"/>
+      <path d="M70 34 L77 10 L55 26 Z"/>
+      <path d="M76 66 q20 6 14 26 q-14-8-20-18 Z"/>
+      <ellipse cx="50" cy="60" rx="29" ry="27"/>
+      <circle class="eye" cx="39" cy="54" r="4.5"/>
+      <circle class="eye" cx="61" cy="54" r="4.5"/>
+    </symbol>
+    <symbol id="wyrm" viewBox="0 0 100 100">
+      <path d="M48 46 L12 18 L20 58 Z"/>
+      <path d="M52 46 L88 18 L80 58 Z"/>
+      <path d="M58 74 q24 8 18 24 q-16-6-26-16 Z"/>
+      <ellipse cx="50" cy="60" rx="16" ry="21"/>
+      <path d="M44 40 q6-20 18-16 q8 4 2 14 Z"/>
+      <circle class="eye" cx="54" cy="32" r="3.5"/>
+    </symbol>
+    <symbol id="finling" viewBox="0 0 100 100">
+      <path d="M50 16 q10 10 4 22 l-12 0 q-4-12 8-22 Z"/>
+      <ellipse cx="50" cy="60" rx="26" ry="26"/>
+      <path d="M22 52 L2 40 L8 66 Z"/>
+      <path d="M78 52 L98 40 L92 66 Z"/>
+      <circle class="eye" cx="41" cy="55" r="4.5"/>
+      <circle class="eye" cx="59" cy="55" r="4.5"/>
+    </symbol>
+    <symbol id="skater" viewBox="0 0 100 100">
+      <circle cx="56" cy="20" r="9"/>
+      <path d="M47 30 L68 35 L62 60 L44 55 Z"/>
+      <path d="M47 37 L18 50 L22 58 L52 47 Z"/>
+      <path d="M62 58 L78 80 L69 85 L53 64 Z"/>
+      <path d="M47 57 L41 84 L32 82 L39 56 Z"/>
+      <path d="M17 48 L23 46 L14 84 L8 82 Z"/>
+      <path d="M4 80 L26 84 L25 91 L3 87 Z"/>
+    </symbol>
+    <symbol id="golfer" viewBox="0 0 100 100">
+      <circle cx="46" cy="18" r="8"/>
+      <path d="M39 27 L57 31 L52 58 L36 54 Z"/>
+      <path d="M52 33 L76 18 L81 25 L56 41 Z"/>
+      <path d="M75 20 L93 3 L97 8 L79 26 Z"/>
+      <path d="M36 56 L29 86 L20 84 L29 55 Z"/>
+      <path d="M50 58 L60 86 L51 89 L41 60 Z"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="intro" id="intro">
+  <div class="table">
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-fire"><svg class="fig" viewBox="0 0 100 100"><use href="#wyrm" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">9</span></div><div class="art a-ice"><svg class="fig" viewBox="0 0 100 100"><use href="#skater" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-water"><svg class="fig" viewBox="0 0 100 100"><use href="#finling" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">8</span></div><div class="art a-turf"><svg class="fig" viewBox="0 0 100 100"><use href="#golfer" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-volt"><svg class="fig" viewBox="0 0 100 100"><use href="#critter" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">9</span></div><div class="art a-dusk"><svg class="fig" viewBox="0 0 100 100"><use href="#wyrm" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-leaf"><svg class="fig" viewBox="0 0 100 100"><use href="#critter" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-ice"><svg class="fig" viewBox="0 0 100 100"><use href="#skater" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">9</span></div><div class="art a-berry"><svg class="fig" viewBox="0 0 100 100"><use href="#finling" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+    <div class="slab"><div class="label"><div class="lines"><i></i><i></i><i></i></div><span class="grade">10</span></div><div class="art a-void"><svg class="fig" viewBox="0 0 100 100"><use href="#critter" width="100" height="100"/></svg></div><div class="slab-footer"></div></div>
+  </div>
+  <div class="intro-logo">Grade<span>House</span></div>
+</div>
 
 <!-- Header -->
 <header class="gh-header">
@@ -115,12 +187,12 @@
   <div class="gh-footer-inner">
     <span class="gh-logo-text sm">Grade<span>House</span></span>
     <p>Buy &amp; sell graded collectibles. Demo build — listings are samples; card images via Pokémon TCG API, Scryfall, official One Piece TCG &amp; Wikimedia Commons.</p>
-    <p class="version">v1.1.0</p>
+    <p class="version">v1.2.0</p>
   </div>
 </footer>
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="script.js?v=1.1.0"></script>
+<script src="script.js?v=1.2.0"></script>
 </body>
 </html>
