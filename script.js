@@ -22,6 +22,7 @@ const ICONS = {
   box: '<path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/><path d="M3.3 7l8.7 5 8.7-5"/><path d="M12 22V12"/>',
   eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  heart: '<path d="M19 14c1.5-1.4 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.1 3 5.5l7 7z"/>',
   star: '<path d="M11.5 3.6a.55.55 0 0 1 1 0l2.2 4.4a.55.55 0 0 0 .4.3l4.9.7a.55.55 0 0 1 .3 1l-3.5 3.4a.55.55 0 0 0-.2.5l.9 4.8a.55.55 0 0 1-.8.6l-4.4-2.3a.55.55 0 0 0-.5 0l-4.4 2.3a.55.55 0 0 1-.8-.6l.9-4.8a.55.55 0 0 0-.2-.5L3.7 10a.55.55 0 0 1 .3-1l4.9-.7a.55.55 0 0 0 .4-.3z"/>',
 };
 
@@ -353,6 +354,48 @@ function allListings() {
   return [...dbListings, ...LISTINGS];
 }
 
+// ── Watchlist ───────────────────────────────────────────────
+let watchSet = new Set(JSON.parse(localStorage.getItem("gh_watch") || "[]"));
+let watchCounts = {};
+
+const watchKey = (l) => String(l.dbId || l.id);
+
+async function loadWatches() {
+  if (!supa) return;
+  const { data } = await supa.from("watches").select("user_id, item_key");
+  if (!data) return;
+  watchCounts = {};
+  data.forEach((w) => { watchCounts[w.item_key] = (watchCounts[w.item_key] || 0) + 1; });
+  if (currentUser) {
+    watchSet = new Set(data.filter((w) => w.user_id === currentUser.id).map((w) => w.item_key));
+  }
+  renderGrid();
+}
+
+// Demo listings get a deterministic baseline so counts don't start at zero
+function watchCount(l) {
+  return (watchCounts[watchKey(l)] || 0) + (l.dbId ? 0 : Math.max(1, Math.round(l.views / 40)));
+}
+
+async function toggleWatch(key) {
+  const on = watchSet.has(key);
+  if (currentUser && supa) {
+    if (on) {
+      watchSet.delete(key);
+      watchCounts[key] = Math.max(0, (watchCounts[key] || 1) - 1);
+      await supa.from("watches").delete().eq("user_id", currentUser.id).eq("item_key", key);
+    } else {
+      watchSet.add(key);
+      watchCounts[key] = (watchCounts[key] || 0) + 1;
+      await supa.from("watches").insert({ user_id: currentUser.id, item_key: key });
+    }
+  } else {
+    on ? watchSet.delete(key) : watchSet.add(key);
+    localStorage.setItem("gh_watch", JSON.stringify([...watchSet]));
+  }
+  renderGrid();
+}
+
 function money(n) {
   return "$" + n.toLocaleString("en-CA");
 }
@@ -451,7 +494,9 @@ function matchesGrade(l) {
 function filtered() {
   let items = allListings().filter((l) => {
     if (state.cat && l.cat !== state.cat) return false;
-    if (state.type && l.type !== state.type) return false;
+    if (state.type === "watching") {
+      if (!watchSet.has(watchKey(l))) return false;
+    } else if (state.type && l.type !== state.type) return false;
     if (!matchesGrade(l)) return false;
     if (state.q) {
       const q = state.q.toLowerCase();
@@ -476,6 +521,7 @@ function renderGrid() {
         ${cardArt(l, "listing-img")}
         <span class="listing-badge ${l.type}">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type}</span>
         ${l.sold ? `<span class="grade-chip sold-chip">SOLD</span>` : l.grade === "raw" ? `<span class="grade-chip raw">RAW</span>` : ""}
+        <button class="watch-btn ${watchSet.has(watchKey(l)) ? "on" : ""}" data-watch="${watchKey(l)}" aria-label="Watch">${icon("heart", "icn-sm")}</button>
       </div>
       <div class="listing-info">
         <span class="listing-title">${l.title}</span>
@@ -500,6 +546,7 @@ function openModal(id) {
       <span class="modal-tag">${icon(iconKey(l.cat), "icn-xs")}${cat ? cat.label : ""}</span>
       <span class="modal-tag">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type === "vault" ? "Vault" : "Direct"}</span>
       <span class="modal-tag">${icon("eye", "icn-xs")}${viewsLabel(l.views)} views</span>
+      <button class="modal-tag watch-tag ${watchSet.has(watchKey(l)) ? "on" : ""}" data-watch="${watchKey(l)}">${icon("heart", "icn-xs")}<span data-watch-count="${watchKey(l)}">${watchCount(l)}</span> watching</button>
     </div>
     <div class="modal-price">${money(l.price)}${l.sold ? ` <span class="sold-flag">SOLD</span>` : ""}</div>
     ${l.sold
@@ -599,6 +646,7 @@ function bindEvents() {
   });
 
   $("listingGrid").addEventListener("click", (e) => {
+    if (e.target.closest("[data-watch]")) return; // heart toggles, doesn't open
     const card = e.target.closest(".listing-card");
     if (card) openModal(card.dataset.id);
   });
@@ -620,6 +668,22 @@ function bindEvents() {
   $("logoLink").addEventListener("click", (e) => e.preventDefault());
 
   document.body.addEventListener("click", (e) => {
+    const w = e.target.closest("[data-watch]");
+    if (w) {
+      e.preventDefault();
+      e.stopPropagation();
+      const key = w.dataset.watch;
+      toggleWatch(key).then(() => {
+        // live-update any open modal heart + count
+        document.querySelectorAll(`[data-watch="${key}"]`).forEach((b) => b.classList.toggle("on", watchSet.has(key)));
+        const cnt = document.querySelector(`[data-watch-count="${key}"]`);
+        if (cnt) {
+          const l = allListings().find((x) => watchKey(x) === key);
+          if (l) cnt.textContent = watchCount(l);
+        }
+      });
+      return;
+    }
     const fol = e.target.closest("[data-follow]");
     if (fol) {
       e.preventDefault();
@@ -750,6 +814,7 @@ function initCloud() {
     currentUser = session ? session.user : null;
     currentProfile = null;
     updateAuthUI();
+    loadWatches();
     if (currentUser) setTimeout(ensureProfile, 400); // let signup's own insert land first
   });
 
@@ -991,6 +1056,7 @@ function closeSellerPage() {
 function initSellerPage() {
   $("sellerClose").addEventListener("click", closeSellerPage);
   $("sellerGrid").addEventListener("click", (e) => {
+    if (e.target.closest("[data-watch]")) return;
     const card = e.target.closest(".listing-card");
     if (card) openModal(card.dataset.id);
   });

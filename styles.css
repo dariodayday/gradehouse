@@ -417,6 +417,22 @@ a { color: inherit; }
 .btn-danger { color: #f87171; margin-top: 8px; }
 .btn-danger:hover { color: #ef4444; }
 
+/* ── Watchlist ──────────────────────────────────────────────── */
+.watch-btn {
+  position: absolute; bottom: 8px; right: 8px;
+  width: 30px; height: 30px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 12, 20, 0.6); backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.15); color: rgba(255, 255, 255, 0.75);
+  transition: all 0.15s;
+}
+.watch-btn:hover { border-color: var(--live); color: var(--live); }
+.watch-btn.on { color: var(--live); border-color: var(--live); }
+.watch-btn.on svg { fill: var(--live); }
+.watch-tag { cursor: pointer; }
+.watch-tag.on { color: var(--live); border-color: var(--live); }
+.watch-tag.on svg { fill: var(--live); }
+
 /* ── Seller link ────────────────────────────────────────────── */
 .seller-link {
   background: none; border: none; padding: 0;
