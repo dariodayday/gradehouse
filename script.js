@@ -649,7 +649,7 @@ async function handleSellSubmit(e) {
   $("sellSubmit").disabled = true;
   $("sellSubmit").textContent = "Posting…";
   try {
-    let imgUrl = null;
+    let imgUrl = pendingSellImgUrl;
     const file = $("sellPhoto").files[0] || (pendingScanPhoto && pendingScanPhoto.blob);
     if (file) {
       const name = file.name ? file.name.replace(/[^\w.-]/g, "_") : "scan.jpg";
@@ -796,6 +796,107 @@ function initCloud() {
   loadDbListings();
 }
 
+// ── My Collection ───────────────────────────────────────────
+let collItems = [];
+let pendingSellImgUrl = null; // reuse an already-uploaded photo when listing from collection
+
+async function openCollection() {
+  if (!supa) return toast("Your collection needs an internet connection");
+  if (!currentUser) {
+    setAuthMode("signup");
+    openOverlay("authOverlay");
+    return toast("Sign in to build your collection");
+  }
+  $("collPage").hidden = false;
+  document.body.style.overflow = "hidden";
+  await loadCollection();
+}
+
+function closeCollection() {
+  $("collPage").hidden = true;
+  document.body.style.overflow = "";
+}
+
+async function loadCollection() {
+  const { data, error } = await supa
+    .from("collection_items")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (!error) {
+    collItems = data || [];
+    renderCollection();
+  }
+}
+
+function renderCollection() {
+  const total = collItems.reduce((s, c) => s + Number(c.value || 0), 0);
+  const byCat = {};
+  collItems.forEach((c) => { byCat[c.cat] = (byCat[c.cat] || 0) + 1; });
+  const top = Object.entries(byCat).sort((a, b) => b[1] - a[1])[0];
+  const topCat = top ? CATEGORIES.find((c) => c.key === top[0]) : null;
+
+  $("collStats").innerHTML = `
+    <div class="coll-stat"><span class="coll-stat-num">${money(Math.round(total))}</span><span class="coll-stat-label">Estimated value</span></div>
+    <div class="coll-stat"><span class="coll-stat-num">${collItems.length}</span><span class="coll-stat-label">Card${collItems.length === 1 ? "" : "s"}</span></div>
+    <div class="coll-stat"><span class="coll-stat-num">${topCat ? topCat.label : "—"}</span><span class="coll-stat-label">Top category</span></div>`;
+
+  $("collEmpty").hidden = collItems.length > 0;
+  $("collGrid").innerHTML = collItems.map((c) => {
+    const l = { img: c.img_url, grade: c.grade, title: c.title, set: c.set_name || "—", cat: c.cat,
+      face: c.img_url ? null : { g: CAT_COLORS[c.cat] || ["#232526", "#414345"], mono: c.title.split(/\s+/).map(w => w[0]).join("").slice(0, 3).toUpperCase() } };
+    return `<div class="listing-card coll-card">
+      <div class="listing-art">${cardArt(l, "listing-img")}</div>
+      <div class="listing-info">
+        <span class="listing-title">${c.title}</span>
+        <span class="listing-set">${c.set_name || "—"}</span>
+        <span class="listing-price">~${money(Number(c.value))}</span>
+        <div class="coll-actions">
+          <button class="coll-sell-btn" data-coll-sell="${c.id}">List for sale</button>
+          <button class="coll-del-btn" data-coll-del="${c.id}" aria-label="Remove">✕</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function sellFromCollection(id) {
+  const c = collItems.find((x) => x.id === id);
+  if (!c) return;
+  $("sellTitle").value = c.title;
+  $("sellSet").value = c.set_name || "";
+  $("sellCat").value = CATEGORIES.some((k) => k.key === c.cat) ? c.cat : "pokemon";
+  $("sellGrade").value = ["10", "9", "8", "7", "raw"].includes(c.grade) ? c.grade : "raw";
+  $("sellPrice").value = Math.round(Number(c.value)) || "";
+  pendingScanPhoto = null;
+  pendingSellImgUrl = c.img_url || null;
+  if (c.img_url) {
+    $("scanAttachImg").src = c.img_url;
+    $("scanAttach").hidden = false;
+  }
+  closeCollection();
+  openOverlay("sellOverlay");
+}
+
+function initCollection() {
+  $("collLink").addEventListener("click", (e) => { e.preventDefault(); openCollection(); });
+  $("collClose").addEventListener("click", closeCollection);
+  $("collGrid").addEventListener("click", async (e) => {
+    const sell = e.target.closest("[data-coll-sell]");
+    if (sell) return sellFromCollection(sell.dataset.collSell);
+    const del = e.target.closest("[data-coll-del]");
+    if (del) {
+      del.disabled = true;
+      const { error } = await supa.from("collection_items").delete().eq("id", del.dataset.collDel);
+      if (!error) {
+        toast("Removed from collection");
+        await loadCollection();
+      } else {
+        del.disabled = false;
+      }
+    }
+  });
+}
+
 // ── Card scanner ────────────────────────────────────────────
 const SCANNER_ENABLED = true; // scan-card edge function is live (Gemini free tier)
 
@@ -928,7 +1029,10 @@ function renderScanResults(cards, frame) {
   if (!cards.length) {
     el.innerHTML = `<p class="scan-empty">Nothing identified — get closer, add light, and rescan.</p>`;
   } else {
-    el.innerHTML = `<h3>${cards.length} card${cards.length === 1 ? "" : "s"} found</h3>` + cards.map((c, i) => `
+    el.innerHTML = `<div class="scan-results-head">
+        <h3>${cards.length} card${cards.length === 1 ? "" : "s"} found</h3>
+        ${cards.length > 1 ? `<button class="btn-keep-hit" id="keepAllBtn">Keep all</button>` : ""}
+      </div>` + cards.map((c, i) => `
       <div class="scan-hit">
         <img src="${cropCard(frame, c.box).toDataURL("image/jpeg", 0.8)}" alt="">
         <div class="scan-hit-info">
@@ -936,10 +1040,36 @@ function renderScanResults(cards, frame) {
           <div class="scan-hit-sub">${c.set_name} · ${gradeLabel(c.grade)}</div>
         </div>
         <span class="scan-hit-price">~${money(c.price_estimate)}</span>
+        <button class="btn-keep-hit" data-scan-keep="${i}">Keep</button>
         <button class="btn-sell-hit" data-scan-sell="${i}">Sell</button>
       </div>`).join("");
   }
   el.hidden = false;
+}
+
+async function keepFromScan(i, btn) {
+  const c = lastScan.cards[i];
+  if (btn) { btn.disabled = true; btn.textContent = "…"; }
+  try {
+    const crop = cropCard(lastScan.frame, c.box);
+    const blob = await new Promise((res) => crop.toBlob(res, "image/jpeg", 0.88));
+    const path = `${currentUser.id}/coll-${Date.now()}-${i}.jpg`;
+    const { error: upErr } = await supa.storage.from("card-photos").upload(path, blob, { contentType: "image/jpeg" });
+    if (upErr) throw upErr;
+    const imgUrl = supa.storage.from("card-photos").getPublicUrl(path).data.publicUrl;
+    const { error } = await supa.from("collection_items").insert({
+      user_id: currentUser.id,
+      title: c.title, set_name: c.set_name, cat: c.cat, grade: c.grade,
+      value: c.price_estimate || 0, img_url: imgUrl,
+    });
+    if (error) throw error;
+    if (btn) btn.textContent = "Kept ✓";
+    return true;
+  } catch (ex) {
+    if (btn) { btn.disabled = false; btn.textContent = "Keep"; }
+    toast("Couldn't save — try again");
+    return false;
+  }
 }
 
 function sellFromScan(i) {
@@ -960,6 +1090,7 @@ function sellFromScan(i) {
 
 function clearScanAttach() {
   pendingScanPhoto = null;
+  pendingSellImgUrl = null;
   $("scanAttach").hidden = true;
 }
 
@@ -970,7 +1101,7 @@ function initBottomNav() {
     document.querySelectorAll("[data-bnav]").forEach((b) => b.classList.toggle("active", b === btn));
     const go = btn.dataset.bnav;
     if (go === "browse") window.scrollTo({ top: 0, behavior: "smooth" });
-    else if (go === "live") $("liveSection").scrollIntoView({ behavior: "smooth" });
+    else if (go === "collection") openCollection();
     else if (go === "scan") openScanner();
     else if (go === "sell") $("sellLink").click();
     else if (go === "account") $("authBtn").click();
@@ -984,9 +1115,22 @@ function initScanner() {
   $("scanCapture").addEventListener("click", captureScan);
   $("scanAgain").addEventListener("click", resetScanner);
   $("scanAttachClear").addEventListener("click", clearScanAttach);
-  $("scanResults").addEventListener("click", (e) => {
-    const btn = e.target.closest("[data-scan-sell]");
-    if (btn) sellFromScan(Number(btn.dataset.scanSell));
+  $("scanResults").addEventListener("click", async (e) => {
+    const sell = e.target.closest("[data-scan-sell]");
+    if (sell) return sellFromScan(Number(sell.dataset.scanSell));
+    const keep = e.target.closest("[data-scan-keep]");
+    if (keep) return keepFromScan(Number(keep.dataset.scanKeep), keep);
+    if (e.target.closest("#keepAllBtn")) {
+      const all = e.target.closest("#keepAllBtn");
+      all.disabled = true;
+      const btns = [...document.querySelectorAll("[data-scan-keep]")];
+      let saved = 0;
+      for (const b of btns) {
+        if (!b.disabled && await keepFromScan(Number(b.dataset.scanKeep), b)) saved++;
+      }
+      all.textContent = `Kept ${saved}`;
+      toast(`${saved} card${saved === 1 ? "" : "s"} added to your collection`);
+    }
   });
 }
 
@@ -1013,6 +1157,7 @@ function init() {
   initCloud();
   initScanner();
   initBottomNav();
+  initCollection();
 }
 
 init();

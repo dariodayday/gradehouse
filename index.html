@@ -91,7 +91,7 @@
       <a href="#liveSection">Live</a>
       <a href="#" id="sellLink">Sell</a>
       <a href="#" id="scanLink">Scan</a>
-      <a href="#" data-soon>Vault</a>
+      <a href="#" id="collLink">Collection</a>
     </nav>
     <button class="gh-signin" id="authBtn">Sign In</button>
   </div>
@@ -281,15 +281,28 @@
   </div>
 </div>
 
+<!-- My Collection -->
+<div class="coll-page" id="collPage" hidden>
+  <div class="coll-head">
+    <button class="scan-close" id="collClose" aria-label="Close">✕</button>
+    <h2>My <span>Collection</span></h2>
+  </div>
+  <div class="coll-stats" id="collStats"></div>
+  <div class="coll-grid" id="collGrid"></div>
+  <p class="empty-state" id="collEmpty" hidden>
+    Nothing here yet — hit Scan, point at your cards, and tap "Keep" on the ones you own.
+  </p>
+</div>
+
 <!-- Mobile bottom nav -->
 <nav class="bottom-nav" id="bottomNav">
   <button data-bnav="browse" class="active">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
     Browse
   </button>
-  <button data-bnav="live">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M7.5 7.5a6.4 6.4 0 0 0 0 9"/><path d="M16.5 7.5a6.4 6.4 0 0 1 0 9"/><path d="M4.6 4.6a10.5 10.5 0 0 0 0 14.8"/><path d="M19.4 4.6a10.5 10.5 0 0 1 0 14.8"/></svg>
-    Live
+  <button data-bnav="collection">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="12" height="16" rx="2"/><path d="M18 5.5 21 20l-3.5.8"/><line x1="6" y1="9" x2="12" y2="9"/></svg>
+    Collection
   </button>
   <button data-bnav="scan" class="bnav-scan">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>
