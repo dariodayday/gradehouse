@@ -688,8 +688,8 @@ async function captureScan() {
 
 function drawScanBoxes(ctx, frame, cards) {
   ctx.lineWidth = Math.max(3, frame.width / 400);
-  ctx.strokeStyle = "#34d399";
-  ctx.shadowColor = "rgba(52, 211, 153, 0.7)";
+  ctx.strokeStyle = "#dfae5a";
+  ctx.shadowColor = "rgba(223, 174, 90, 0.7)";
   ctx.shadowBlur = 10;
   cards.forEach((c) => {
     ctx.strokeRect(c.box.x * frame.width, c.box.y * frame.height, c.box.w * frame.width, c.box.h * frame.height);
