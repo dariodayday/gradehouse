@@ -23,6 +23,7 @@ const ICONS = {
   eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>',
   clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
   heart: '<path d="M19 14c1.5-1.4 3-3.2 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3 .5-4.5 2-1.5-1.5-2.7-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.1 3 5.5l7 7z"/>',
+  share: '<path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>',
   star: '<path d="M11.5 3.6a.55.55 0 0 1 1 0l2.2 4.4a.55.55 0 0 0 .4.3l4.9.7a.55.55 0 0 1 .3 1l-3.5 3.4a.55.55 0 0 0-.2.5l.9 4.8a.55.55 0 0 1-.8.6l-4.4-2.3a.55.55 0 0 0-.5 0l-4.4 2.3a.55.55 0 0 1-.8-.6l.9-4.8a.55.55 0 0 0-.2-.5L3.7 10a.55.55 0 0 1 .3-1l4.9-.7a.55.55 0 0 0 .4-.3z"/>',
 };
 
@@ -264,7 +265,7 @@ const LISTINGS = [
     face: { g: ["#141e30", "#243b55"], mono: "Ω" } },
 ];
 
-const state = { cat: "", type: "", grade: "", q: "", sort: "newest" };
+const state = { cat: "", type: "", grade: "", q: "", sort: "newest", chip: "" };
 
 const $ = (id) => document.getElementById(id);
 
@@ -347,6 +348,7 @@ async function loadDbListings() {
     dbListings = data.map(mapDbRow);
     renderGrid();
     await fetchProfiles(dbListings.map((l) => l.userId));
+    openFromHash(); // shared links to real listings resolve once they're loaded
   }
 }
 
@@ -498,6 +500,11 @@ function filtered() {
       if (!watchSet.has(watchKey(l))) return false;
     } else if (state.type && l.type !== state.type) return false;
     if (!matchesGrade(l)) return false;
+    if (state.chip === "under100" && l.price >= 100) return false;
+    if (state.chip === "under500" && l.price >= 500) return false;
+    if (state.chip === "psa10" && l.grade !== "10") return false;
+    if (state.chip === "vintage" && !/\b(18\d{2}|19[0-7]\d)\b/.test(l.set)) return false;
+    if (state.chip === "grails" && l.price < 5000) return false;
     if (state.q) {
       const q = state.q.toLowerCase();
       if (!(l.title + " " + l.set + " " + l.cat).toLowerCase().includes(q)) return false;
@@ -547,6 +554,7 @@ function openModal(id) {
       <span class="modal-tag">${icon(l.type === "vault" ? "lock" : "box", "icn-xs")}${l.type === "vault" ? "Vault" : "Direct"}</span>
       <span class="modal-tag">${icon("eye", "icn-xs")}${viewsLabel(l.views)} views</span>
       <button class="modal-tag watch-tag ${watchSet.has(watchKey(l)) ? "on" : ""}" data-watch="${watchKey(l)}">${icon("heart", "icn-xs")}<span data-watch-count="${watchKey(l)}">${watchCount(l)}</span> watching</button>
+      <button class="modal-tag" data-share="${watchKey(l)}" data-share-title="${l.title.replace(/"/g, "&quot;")}">${icon("share", "icn-xs")}Share</button>
     </div>
     <div class="modal-price">${money(l.price)}${l.sold ? ` <span class="sold-flag">SOLD</span>` : ""}</div>
     ${l.sold
@@ -565,7 +573,13 @@ function openModal(id) {
     <div class="offer-list" id="offerList"></div>`;
   $("modalOverlay").hidden = false;
   document.body.style.overflow = "hidden";
+  history.replaceState(null, "", "#card=" + encodeURIComponent(watchKey(l)));
   if (l.dbId && supa && currentUser) loadOffers(l, mine);
+}
+
+function openFromHash() {
+  const m = location.hash.match(/^#card=(.+)$/);
+  if (m && $("modalOverlay").hidden) openModal(decodeURIComponent(m[1]));
 }
 
 async function loadOffers(l, mine) {
@@ -600,8 +614,10 @@ async function loadOffers(l, mine) {
 }
 
 function closeModal() {
+  if ($("modalOverlay").hidden) return;
   $("modalOverlay").hidden = true;
-  document.body.style.overflow = "";
+  if ($("sellerPage").hidden && $("collPage").hidden) document.body.style.overflow = "";
+  if (location.hash.startsWith("#card=")) history.replaceState(null, "", location.pathname + location.search);
 }
 
 let toastTimer;
@@ -627,6 +643,14 @@ function bindEvents() {
     if (!tab) return;
     state.type = tab.dataset.type;
     document.querySelectorAll(".filter-tab").forEach((t) => t.classList.toggle("active", t === tab));
+    renderGrid();
+  });
+
+  $("chipRow").addEventListener("click", (e) => {
+    const chip = e.target.closest(".qchip");
+    if (!chip) return;
+    state.chip = state.chip === chip.dataset.chip ? "" : chip.dataset.chip;
+    document.querySelectorAll(".qchip").forEach((c) => c.classList.toggle("active", c.dataset.chip === state.chip));
     renderGrid();
   });
 
@@ -682,6 +706,18 @@ function bindEvents() {
           if (l) cnt.textContent = watchCount(l);
         }
       });
+      return;
+    }
+    const sh = e.target.closest("[data-share]");
+    if (sh) {
+      e.preventDefault();
+      const url = location.origin + location.pathname + "#card=" + encodeURIComponent(sh.dataset.share);
+      const title = sh.dataset.shareTitle || "GradeHouse";
+      if (navigator.share) {
+        navigator.share({ title: `${title} on GradeHouse`, url }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(url).then(() => toast("Link copied"));
+      }
       return;
     }
     const fol = e.target.closest("[data-follow]");
@@ -1344,6 +1380,10 @@ function init() {
   initBottomNav();
   initCollection();
   initSellerPage();
+  openFromHash();
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  }
 }
 
 init();

@@ -220,6 +220,19 @@ a { color: inherit; }
   outline: none; cursor: pointer;
 }
 .filter-select:focus { border-color: var(--brand); }
+.chip-row {
+  max-width: 1200px; margin: 0 auto; padding: 0 16px 10px;
+  display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+}
+.chip-row::-webkit-scrollbar { display: none; }
+.qchip {
+  flex-shrink: 0; background: none; border: 1px solid var(--border);
+  color: var(--text-muted); border-radius: 14px; padding: 4px 12px;
+  font-size: 11.5px; font-weight: 600; letter-spacing: 0.02em;
+  transition: all 0.15s;
+}
+.qchip:hover { border-color: var(--brand); color: var(--brand); }
+.qchip.active { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); font-weight: 700; }
 
 /* ── Grid ───────────────────────────────────────────────────── */
 .content { max-width: 1200px; margin: 0 auto; padding: 18px 16px 0; }
