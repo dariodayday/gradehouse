@@ -195,6 +195,10 @@
     <h3 id="authTitle">Sign in to GradeHouse</h3>
     <p class="modal-set">Buy, sell, and track your collection.</p>
     <form id="authForm" class="gh-form">
+      <label class="gh-label" id="authNameLabel" hidden>Username
+        <input type="text" id="authUsername" class="gh-input" minlength="3" maxlength="20"
+               pattern="[a-z0-9_]+" placeholder="lowercase, e.g. dayday" autocomplete="username">
+      </label>
       <label class="gh-label">Email
         <input type="email" id="authEmail" class="gh-input" required autocomplete="email">
       </label>
@@ -279,6 +283,33 @@
     <button class="scan-shutter" id="scanCapture" aria-label="Scan"></button>
     <button class="btn-ghost scan-again" id="scanAgain" hidden>Scan again</button>
   </div>
+</div>
+
+<!-- Pick-a-handle prompt (existing accounts without one) -->
+<div class="modal-overlay" id="nameOverlay" hidden>
+  <div class="modal modal-sm" role="dialog" aria-modal="true">
+    <h3>Pick your handle</h3>
+    <p class="modal-set">This is how buyers and sellers will see you.</p>
+    <form id="nameForm" class="gh-form">
+      <label class="gh-label">Username
+        <input type="text" id="nameInput" class="gh-input" required minlength="3" maxlength="20"
+               pattern="[a-z0-9_]+" placeholder="lowercase, e.g. dayday" autocomplete="username">
+      </label>
+      <p class="form-error" id="nameError" hidden></p>
+      <button type="submit" class="btn-buy">Claim it</button>
+    </form>
+  </div>
+</div>
+
+<!-- Seller shop page -->
+<div class="coll-page" id="sellerPage" hidden>
+  <div class="coll-head">
+    <button class="scan-close" id="sellerClose" aria-label="Close">✕</button>
+    <h2 id="sellerName">@<span>seller</span></h2>
+  </div>
+  <div class="coll-stats" id="sellerStats"></div>
+  <div class="coll-grid" id="sellerGrid"></div>
+  <p class="empty-state" id="sellerEmpty" hidden>No active listings right now.</p>
 </div>
 
 <!-- My Collection -->

@@ -272,7 +272,46 @@ const supa = window.supabase && window.SUPA_URL
   ? window.supabase.createClient(window.SUPA_URL, window.SUPA_ANON)
   : null;
 let currentUser = null;
+let currentProfile = null;
 let dbListings = [];
+const profileCache = {}; // user_id → username
+
+async function fetchProfiles(ids) {
+  const missing = [...new Set(ids)].filter((id) => id && !profileCache[id]);
+  if (!missing.length || !supa) return;
+  const { data } = await supa.from("profiles").select("user_id, username, created_at").in("user_id", missing);
+  (data || []).forEach((p) => { profileCache[p.user_id] = p; });
+}
+
+async function ensureProfile() {
+  if (!currentUser || !supa || currentProfile) return;
+  const { data } = await supa.from("profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
+  if (data) {
+    currentProfile = data;
+    profileCache[data.user_id] = data;
+  } else {
+    currentProfile = null;
+    openOverlay("nameOverlay");
+  }
+}
+
+async function saveUsername(raw, errEl) {
+  const username = raw.trim().toLowerCase();
+  if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+    errEl.textContent = "3–20 characters: lowercase letters, numbers, underscores";
+    errEl.hidden = false;
+    return false;
+  }
+  const { error } = await supa.from("profiles").insert({ user_id: currentUser.id, username });
+  if (error) {
+    errEl.textContent = /duplicate|unique/i.test(error.message) ? "That handle's taken — try another" : error.message;
+    errEl.hidden = false;
+    return false;
+  }
+  currentProfile = { user_id: currentUser.id, username };
+  profileCache[currentUser.id] = currentProfile;
+  return true;
+}
 
 // Fallback art colors for user listings without a photo
 const CAT_COLORS = {
@@ -306,6 +345,7 @@ async function loadDbListings() {
   if (!error && data) {
     dbListings = data.map(mapDbRow);
     renderGrid();
+    await fetchProfiles(dbListings.map((l) => l.userId));
   }
 }
 
@@ -454,7 +494,7 @@ function openModal(id) {
   $("modalBody").innerHTML = `
     ${cardArt(l, "modal-img")}
     <h3>${l.title}</h3>
-    <p class="modal-set">${l.set}</p>
+    <p class="modal-set">${l.set}${l.dbId ? ` · sold by <button class="seller-link" data-seller-open="${l.userId}">@${(profileCache[l.userId] && profileCache[l.userId].username) || "member"}</button>` : ""}</p>
     <div class="modal-meta">
       <span class="modal-tag hl">${gradeLabel(l.grade)}</span>
       <span class="modal-tag">${icon(iconKey(l.cat), "icn-xs")}${cat ? cat.label : ""}</span>
@@ -568,7 +608,7 @@ function bindEvents() {
     if (e.target === $("modalOverlay")) closeModal();
   });
   document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { closeModal(); closeOverlay("authOverlay"); closeOverlay("sellOverlay"); }
+    if (e.key === "Escape") { closeModal(); closeOverlay("authOverlay"); closeOverlay("sellOverlay"); closeOverlay("nameOverlay"); }
   });
 
   $("allListingsLink").addEventListener("click", (e) => {
@@ -618,6 +658,8 @@ function setAuthMode(mode) {
   $("authTitle").textContent = mode === "signin" ? "Sign in to GradeHouse" : "Create your account";
   $("authSubmit").textContent = mode === "signin" ? "Sign In" : "Sign Up";
   $("authToggle").textContent = mode === "signin" ? "New here? Create an account" : "Have an account? Sign in";
+  $("authNameLabel").hidden = mode === "signin";
+  $("authUsername").required = mode === "signup";
 }
 
 async function handleAuthSubmit(e) {
@@ -628,12 +670,26 @@ async function handleAuthSubmit(e) {
   err.hidden = true;
   $("authSubmit").disabled = true;
   try {
-    const { error } = authMode === "signin"
-      ? await supa.auth.signInWithPassword({ email, password })
-      : await supa.auth.signUp({ email, password });
-    if (error) throw error;
+    if (authMode === "signup") {
+      const uname = $("authUsername").value.trim().toLowerCase();
+      if (!/^[a-z0-9_]{3,20}$/.test(uname)) {
+        throw new Error("Username: 3–20 characters, lowercase letters/numbers/underscores");
+      }
+      const { data: taken } = await supa.from("profiles").select("user_id").eq("username", uname).maybeSingle();
+      if (taken) throw new Error("That handle's taken — try another");
+      const { error } = await supa.auth.signUp({ email, password });
+      if (error) throw error;
+      const uid = (await supa.auth.getUser()).data.user.id;
+      await supa.from("profiles").insert({ user_id: uid, username: uname });
+      currentProfile = { user_id: uid, username: uname };
+      profileCache[uid] = currentProfile;
+      toast(`Welcome to GradeHouse, @${uname}`);
+    } else {
+      const { error } = await supa.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      toast("Welcome back");
+    }
     closeOverlay("authOverlay");
-    toast(authMode === "signin" ? "Welcome back" : "Account created — welcome to GradeHouse");
   } catch (ex) {
     err.textContent = ex.message || "Something went wrong";
     err.hidden = false;
@@ -692,7 +748,18 @@ function initCloud() {
   }
   supa.auth.onAuthStateChange((_event, session) => {
     currentUser = session ? session.user : null;
+    currentProfile = null;
     updateAuthUI();
+    if (currentUser) setTimeout(ensureProfile, 400); // let signup's own insert land first
+  });
+
+  $("nameForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const ok = await saveUsername($("nameInput").value, $("nameError"));
+    if (ok) {
+      closeOverlay("nameOverlay");
+      toast(`You're @${currentProfile.username}`);
+    }
   });
 
   $("authBtn").addEventListener("click", async () => {
@@ -726,7 +793,7 @@ function initCloud() {
   document.querySelectorAll("[data-close]").forEach((btn) =>
     btn.addEventListener("click", () => closeOverlay(btn.dataset.close))
   );
-  ["authOverlay", "sellOverlay"].forEach((id) =>
+  ["authOverlay", "sellOverlay", "nameOverlay"].forEach((id) =>
     $(id).addEventListener("click", (e) => { if (e.target === $(id)) closeOverlay(id); })
   );
 
@@ -743,6 +810,12 @@ function initCloud() {
         rm.disabled = false;
         toast("Couldn't remove listing");
       }
+      return;
+    }
+    const sl = e.target.closest("[data-seller-open]");
+    if (sl) {
+      closeModal();
+      openSellerPage(sl.dataset.sellerOpen);
       return;
     }
     const tog = e.target.closest("[data-offer-toggle]");
@@ -875,6 +948,52 @@ function sellFromCollection(id) {
   }
   closeCollection();
   openOverlay("sellOverlay");
+}
+
+// ── Seller shop page ────────────────────────────────────────
+async function openSellerPage(uid) {
+  await fetchProfiles([uid]);
+  const p = profileCache[uid];
+  const items = dbListings.filter((l) => l.userId === uid);
+  const active = items.filter((l) => !l.sold);
+  const sold = items.filter((l) => l.sold);
+  const since = p && p.created_at
+    ? new Date(p.created_at).toLocaleDateString([], { month: "short", year: "numeric" })
+    : "—";
+
+  $("sellerName").innerHTML = `@<span>${p ? p.username : "member"}</span>`;
+  $("sellerStats").innerHTML = `
+    <div class="coll-stat"><span class="coll-stat-num">${active.length}</span><span class="coll-stat-label">Active listings</span></div>
+    <div class="coll-stat"><span class="coll-stat-num">${sold.length}</span><span class="coll-stat-label">Sold</span></div>
+    <div class="coll-stat"><span class="coll-stat-num">${since}</span><span class="coll-stat-label">Member since</span></div>`;
+  $("sellerEmpty").hidden = items.length > 0;
+  $("sellerGrid").innerHTML = items.map((l) => `
+    <div class="listing-card" data-id="${l.id}">
+      <div class="listing-art">
+        ${cardArt(l, "listing-img")}
+        ${l.sold ? `<span class="grade-chip sold-chip">SOLD</span>` : l.grade === "raw" ? `<span class="grade-chip raw">RAW</span>` : ""}
+      </div>
+      <div class="listing-info">
+        <span class="listing-title">${l.title}</span>
+        <span class="listing-set">${l.set}</span>
+        <span class="listing-price">${money(l.price)}</span>
+      </div>
+    </div>`).join("");
+  $("sellerPage").hidden = false;
+  document.body.style.overflow = "hidden";
+}
+
+function closeSellerPage() {
+  $("sellerPage").hidden = true;
+  if ($("modalOverlay").hidden) document.body.style.overflow = "";
+}
+
+function initSellerPage() {
+  $("sellerClose").addEventListener("click", closeSellerPage);
+  $("sellerGrid").addEventListener("click", (e) => {
+    const card = e.target.closest(".listing-card");
+    if (card) openModal(card.dataset.id);
+  });
 }
 
 function initCollection() {
@@ -1158,6 +1277,7 @@ function init() {
   initScanner();
   initBottomNav();
   initCollection();
+  initSellerPage();
 }
 
 init();

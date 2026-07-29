@@ -417,6 +417,14 @@ a { color: inherit; }
 .btn-danger { color: #f87171; margin-top: 8px; }
 .btn-danger:hover { color: #ef4444; }
 
+/* ── Seller link ────────────────────────────────────────────── */
+.seller-link {
+  background: none; border: none; padding: 0;
+  color: var(--brand); font-size: inherit; font-family: inherit; font-weight: 700;
+  text-decoration: underline; text-decoration-color: rgba(223, 174, 90, 0.4);
+}
+.seller-link:hover { text-decoration-color: var(--brand); }
+
 /* ── Offers ─────────────────────────────────────────────────── */
 .offer-form { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
 .offer-form .gh-form-row { grid-template-columns: 1fr auto; }
