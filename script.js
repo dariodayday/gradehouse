@@ -584,12 +584,15 @@ function initCloud() {
 }
 
 // ── Card scanner ────────────────────────────────────────────
+const SCANNER_ENABLED = true; // scan-card edge function is live (Gemini free tier)
+
 let scanStream = null;
 let scanBusy = false;
 let lastScan = null; // { canvas, cards }
 let pendingScanPhoto = null; // { blob, dataUrl } attached to the sell form
 
 async function openScanner() {
+  if (!SCANNER_ENABLED) return toast("Card scanner coming soon");
   if (!supa) return toast("Scanning needs an internet connection");
   if (!currentUser) {
     setAuthMode("signin");
